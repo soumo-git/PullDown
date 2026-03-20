@@ -1,0 +1,50 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "PULLDOWN",
+  "version": "0.1.0",
+  "identifier": "com.pulldown.app",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "PULLDOWN",
+        "width": 800,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 680
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "resources": [
+      "engines/**/*"
+    ],
+    "icon": [
+    "icons/128x128.png",
+    "icons/128x128@2x.png",
+    "icons/32x32.png",
+    "icons/64x64.png",
+    "icons/icon.icns",
+    "icons/icon.ico",
+    "icons/icon.png",
+    "icons/Square107x107Logo.png",
+    "icons/Square142x142Logo.png",
+    "icons/Square150x150Logo.png",
+    "icons/Square284x284Logo.png",
+    "icons/Square30x30Logo.png",
+    "icons/Square310x310Logo.png",
+    "icons/Square44x44Logo.png",
+    "icons/Square71x71Logo.png",
+    "icons/Square89x89Logo.png",
+    "icons/StoreLogo.png"
+    ]
+  }
+}

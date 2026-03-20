@@ -1,0 +1,71 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Bundled engine binaries (downloaded locally)
+src-tauri/engines/windows/*.exe
+src-tauri/engines/windows/*.zip
+src-tauri/engines/linux/yt-dlp
+src-tauri/engines/linux/ffmpeg
+src-tauri/engines/macos/yt-dlp
+src-tauri/engines/macos/ffmpeg
+!src-tauri/engines/**/.gitkeep
+
+# Rust / Tauri build outputs
+# Ignore Cargo/target build directories and common compiled artifacts
+/target/
+/src-tauri/target/
+**/target/
+*.rlib
+*.rmeta
+
+# Compiled binaries / libraries (platform-specific)
+*.exe
+*.dll
+*.so
+*.dylib
+*.d
+*.pdb
+
+# Common frontend/tooling caches and build outputs
+.cache/
+.parcel-cache/
+/build/
+/out/
+.next/
+.nuxt/
+.vite/
+
+# Environment and secrets
+.env
+.env.*.local
+.env.local
+local.env
+
+# OS files
+desktop.ini
+Thumbs.db
+ehthumbs.db
+
+# keep node package lockfiles tracked (do not ignore package-lock.json / yarn.lock)

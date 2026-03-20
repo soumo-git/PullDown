@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="PullDown — open-source desktop video downloader powered by yt-dlp and ffmpeg" />
+    <title>PullDown</title>
+
+    <!-- Preconnect for Google Fonts performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="styles/themes.css" />
+    <link rel="stylesheet" href="styles/base.css" />
+    <link rel="stylesheet" href="styles/layout.css" />
+    <link rel="stylesheet" href="styles/components.css" />
+  </head>
+
+  <body>
+    <!-- App Shell -->
+    <div id="app" class="app-shell" role="application" aria-label="PullDown Video Downloader">
+
+      <!-- ═══════════════════════════════════════════
+           LEFT SIDEBAR
+      ═══════════════════════════════════════════ -->
+      <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main navigation">
+
+        <!-- Branding -->
+        <div class="sidebar__brand">
+          <div class="brand-logo">
+            <img
+              src="/assets/pulldown.png"
+              class="brand-icon"
+              alt="PullDown logo"
+              draggable="false"
+            />
+            <span class="brand-name">PullDown</span>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar__nav" aria-label="Primary navigation">
+          <ul class="nav-list" role="list">
+            <li class="nav-item">
+              <button
+                id="nav-downloads"
+                class="nav-btn active"
+                data-view="downloads"
+                aria-current="page"
+                aria-label="Downloads view"
+              >
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 2v13M12 15l-5-5M12 15l5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M3 20h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Downloads</span>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button
+                id="nav-player"
+                class="nav-btn"
+                data-view="player"
+                aria-label="Player view"
+              >
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M10 8.5l6 3.5-6 3.5V8.5z" fill="currentColor"/>
+                </svg>
+                <span>Player</span>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button
+                id="nav-browse"
+                class="nav-btn"
+                data-view="browse"
+                aria-label="Browse view"
+              >
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M21 21l-4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Browse</span>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button
+                id="nav-library"
+                class="nav-btn"
+                data-view="library"
+                aria-label="Library view"
+              >
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="3" y="4" width="6" height="16" rx="1" stroke="currentColor" stroke-width="1.8"/>
+                  <rect x="11" y="4" width="6" height="16" rx="1" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M19 4l2 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Library</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Engine Update Banner (shown when update is available) -->
+        <div id="engine-update-banner" class="engine-update-banner" role="alert" aria-live="polite" style="display:none;">
+          <div class="update-banner__label">yt-dlp 2025.03 available</div>
+          <button id="btn-update-engine" class="btn-update-engine" aria-label="Update engine to latest version">
+            Update engine →
+          </button>
+        </div>
+
+        <!-- Settings nav at bottom -->
+        <div class="sidebar__bottom">
+          <button
+            id="nav-settings"
+            class="nav-btn nav-btn--settings"
+            data-view="settings"
+            aria-label="Settings view"
+          >
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>Settings</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- ═══════════════════════════════════════════
+           MAIN CONTENT
+      ═══════════════════════════════════════════ -->
+      <div class="main-wrapper">
+        <main id="main-content" class="main-content" role="main">
+
+          <!-- TOP BAR: URL input + controls -->
+          <header class="topbar" role="banner">
+            <div class="topbar__url-group">
+              <div class="url-input-wrap">
+                <svg class="url-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <input
+                  id="url-input"
+                  type="url"
+                  class="url-input"
+                  placeholder="Paste URL — YouTube · Vimeo · Twitter · Reddit..."
+                  aria-label="Video URL input"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+              </div>
+              <button
+                id="btn-format"
+                class="btn btn--ghost"
+                aria-haspopup="dialog"
+                aria-controls="format-modal"
+                aria-label="Select download format"
+              >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="14" height="14">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span id="btn-format-label">Format</span>
+              </button>
+              <button
+                id="btn-add"
+                class="btn btn--primary"
+                disabled
+                aria-label="Add URL to download queue"
+              >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="14" height="14">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Add
+              </button>
+            </div>
+          </header>
+
+          <!-- QUEUE SECTION: shown in downloads view -->
+          <section id="view-downloads" class="view view--active" aria-label="Download queue">
+            <!-- Queue header row -->
+            <div class="queue-header">
+              <div class="queue-header__left">
+                <h1 class="queue-title">Downloads</h1>
+                <div class="queue-tabs" role="tablist" aria-label="Download lists">
+                  <button
+                    id="queue-tab-queue"
+                    class="queue-tab is-active"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="queue-list"
+                    data-tab="queue"
+                  >
+                    Queue
+                  </button>
+                  <button
+                    id="queue-tab-downloaded"
+                    class="queue-tab"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="queue-list"
+                    data-tab="downloaded"
+                  >
+                    Downloaded
+                  </button>
+                </div>
+                <span id="queue-count" class="badge" aria-label="Items in queue">0 items</span>
+                <span id="active-count" class="badge badge--active" aria-live="polite"></span>
+              </div>
+              <div class="queue-header__right">
+                <span id="speed-indicator" class="speed-indicator" aria-live="polite"></span>
+              </div>
+            </div>
+
+            <!-- Queue list container -->
+            <div id="queue-list" class="queue-list" role="list" aria-label="Download queue items">
+              <!-- Items injected by JS -->
+            </div>
+
+            <!-- Empty state -->
+            <div id="queue-empty" class="queue-empty" aria-label="Queue is empty">
+              <svg viewBox="0 0 64 64" fill="none" aria-hidden="true" width="64" height="64">
+                <circle cx="32" cy="32" r="28" stroke="var(--color-border)" stroke-width="2"/>
+                <path d="M32 18v16M32 34l-8-8M32 34l8-8" stroke="var(--color-border)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 46h24" stroke="var(--color-border)" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <p class="queue-empty__title">No downloads yet</p>
+              <p class="queue-empty__hint">Paste a URL above and hit <kbd>Enter</kbd> or click Add</p>
+            </div>
+          </section>
+
+          <!-- PLAYER VIEW -->
+          <section id="view-player" class="view view--placeholder" style="display:none;" aria-label="Player">
+            <div class="placeholder-panel">
+              <svg viewBox="0 0 64 64" fill="none" width="64" height="64" aria-hidden="true">
+                <circle cx="32" cy="32" r="28" stroke="var(--color-border)" stroke-width="2"/>
+                <path d="M25 20l18 12-18 12V20z" fill="var(--color-accent)" opacity=".3"/>
+              </svg>
+              <h2 class="placeholder-title">Player</h2>
+              <p class="placeholder-desc">Your completed downloads will appear here for in-app playback.</p>
+            </div>
+          </section>
+
+          <!-- BROWSE VIEW -->
+          <section id="view-browse" class="view view--placeholder" style="display:none;" aria-label="Browse">
+            <div class="placeholder-panel">
+              <svg viewBox="0 0 64 64" fill="none" width="64" height="64" aria-hidden="true">
+                <circle cx="28" cy="28" r="18" stroke="var(--color-border)" stroke-width="2"/>
+                <path d="M42 42l10 10" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+              </svg>
+              <h2 class="placeholder-title">Browse</h2>
+              <p class="placeholder-desc">Built-in browser for YouTube, Vimeo, Twitter & more — coming soon.</p>
+            </div>
+          </section>
+
+          <!-- LIBRARY VIEW -->
+          <section id="view-library" class="view view--placeholder" style="display:none;" aria-label="Library">
+            <div class="placeholder-panel">
+              <svg viewBox="0 0 64 64" fill="none" width="64" height="64" aria-hidden="true">
+                <rect x="8" y="8" width="20" height="48" rx="2" stroke="var(--color-border)" stroke-width="2"/>
+                <rect x="32" y="8" width="20" height="48" rx="2" stroke="var(--color-border)" stroke-width="2"/>
+              </svg>
+              <h2 class="placeholder-title">Library</h2>
+              <p class="placeholder-desc">All downloaded videos organized and ready — coming soon.</p>
+            </div>
+          </section>
+
+          <!-- SETTINGS VIEW -->
+          <section id="view-settings" class="view" style="display:none;" aria-label="Settings">
+            <div class="settings-panel">
+              <h1 class="settings-title">Settings</h1>
+
+              <!-- Engine Management Section -->
+              <div id="engine-management" class="settings-section">
+                <h2 class="settings-section__title">Engine Management</h2>
+                <p class="settings-section__desc">PullDown uses yt-dlp and ffmpeg as its download engines. Keeping them updated ensures access to new sites and fixes.</p>
+
+                <div class="engine-cards">
+                  <div class="engine-card">
+                    <div class="engine-card__header">
+                      <span class="engine-card__name">yt-dlp</span>
+                      <span class="status-dot status-dot--amber" aria-label="Update available"></span>
+                    </div>
+                    <div class="engine-card__version mono">v2024.12.13</div>
+                    <div class="engine-card__latest mono">Latest: v2025.03.01</div>
+                    <button class="btn btn--primary btn--sm" id="btn-engine-ytdlp" aria-label="Manage yt-dlp engine">
+                      Update yt-dlp
+                    </button>
+                    <div class="engine-progress" id="engine-progress-ytdlp" aria-live="polite" style="display:none;">
+                      <div class="engine-progress__bar">
+                        <div class="engine-progress__fill" id="engine-progress-ytdlp-fill"></div>
+                      </div>
+                      <div class="engine-progress__text mono" id="engine-progress-ytdlp-text">0%</div>
+                    </div>
+                  </div>
+                  <div class="engine-card">
+                    <div class="engine-card__header">
+                      <span class="engine-card__name">ffmpeg</span>
+                      <span class="status-dot status-dot--green" aria-label="Up to date"></span>
+                    </div>
+                    <div class="engine-card__version mono">v7.1</div>
+                    <div class="engine-card__latest mono">Latest: v7.1 ✓</div>
+                    <button class="btn btn--ghost btn--sm" id="btn-engine-ffmpeg" aria-label="Manage ffmpeg engine">
+                      Up to date
+                    </button>
+                    <div class="engine-progress" id="engine-progress-ffmpeg" aria-live="polite" style="display:none;">
+                      <div class="engine-progress__bar">
+                        <div class="engine-progress__fill" id="engine-progress-ffmpeg-fill"></div>
+                      </div>
+                      <div class="engine-progress__text mono" id="engine-progress-ffmpeg-text">0%</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="engine-install-prompt" class="engine-install-prompt mono" role="alert" aria-live="polite" style="display:none;">
+                  Download engines are missing. Install yt-dlp and ffmpeg to start downloading.
+                </div>
+                <div id="engine-update-log" class="engine-log mono" aria-live="polite" aria-label="Engine update log"></div>
+              </div>
+
+              <!-- Download Path Section -->
+              <div class="settings-section">
+                <h2 class="settings-section__title">Download Location</h2>
+                <div class="settings-row">
+                  <input id="settings-download-dir-input" type="text" class="url-input" value="~/Downloads" readonly aria-label="Download directory path" />
+                  <button id="btn-browse-download-dir" class="btn btn--ghost" aria-label="Browse for download directory">Browse</button>
+                </div>
+              </div>
+
+              <!-- About Section -->
+              <div class="settings-section">
+                <h2 class="settings-section__title">About</h2>
+                <p class="settings-section__desc mono">PullDown v0.1.0 · Open-source · MIT License</p>
+                <p class="settings-section__desc">Built with Tauri + yt-dlp + ffmpeg. No trackers. No telemetry. Just downloads.</p>
+              </div>
+            </div>
+          </section>
+
+        </main>
+
+        <!-- ═══════════════════════════════════════════
+             STATUS BAR
+        ═══════════════════════════════════════════ -->
+        <footer id="status-bar" class="status-bar" role="contentinfo" aria-label="Application status">
+          <div class="status-bar__left">
+            <span class="status-engine">
+              <span class="status-dot status-dot--active" aria-label="yt-dlp active"></span>
+              <span class="mono">yt-dlp 2024.12.13</span>
+            </span>
+            <span class="status-sep">·</span>
+            <span class="status-engine">
+              <span class="status-dot status-dot--green" aria-label="ffmpeg running"></span>
+              <span class="mono">ffmpeg 7.1</span>
+            </span>
+          </div>
+          <div class="status-bar__center">
+            <span id="status-active-label" class="mono" aria-live="polite">Ready</span>
+          </div>
+          <div class="status-bar__right">
+            <span class="mono" id="status-storage">~/Downloads · 128 GB free</span>
+            <span id="status-update-badge" class="status-update-badge" style="display:none;" aria-live="polite">
+              <span class="status-dot status-dot--amber"></span>
+              Update available
+            </span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         FORMAT PICKER MODAL
+    ═══════════════════════════════════════════ -->
+    <div
+      id="format-modal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Select download format"
+      aria-hidden="true"
+      style="display:none;"
+    >
+      <div class="modal" id="format-modal-inner">
+        <div class="modal__header">
+          <h2 class="modal__title">Select Format</h2>
+          <button class="modal__close" id="btn-modal-close" aria-label="Close format picker">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal__body" role="list" aria-label="Available download formats">
+          <!-- Format cards injected by JS -->
+        </div>
+        <div class="modal__footer">
+          <button id="btn-format-confirm" class="btn btn--primary" aria-label="Confirm selected format">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ES Module entry point -->
+    <script type="module" src="scripts/app.js"></script>
+  </body>
+</html>

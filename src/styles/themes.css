@@ -1,0 +1,85 @@
+/* ═══════════════════════════════════════════════════
+   themes.css — Design tokens (CSS custom properties)
+   All colors, spacing, radii, shadows, transitions
+═══════════════════════════════════════════════════ */
+
+:root {
+  /* ── Color Palette ── */
+  --color-bg-base:        #0d1117;   /* deepest background */
+  --color-bg-surface:     #161b22;   /* panel / card bg */
+  --color-bg-elevated:    #1c2333;   /* elevated surfaces */
+  --color-bg-hover:       #21283a;   /* hover states */
+  --color-bg-sidebar:     #0f1419;   /* sidebar bg */
+  --color-bg-input:       #1a2030;   /* form inputs */
+
+  --color-border:         #2d3748;   /* default border */
+  --color-border-subtle:  #1e2536;   /* very subtle dividers */
+  --color-border-focus:   rgba(59, 173, 255, 0.45); /* focus ring */
+
+  /* Accent — electric blue  */
+  --color-accent:         #3badff;
+  --color-accent-dim:     rgba(59, 173, 255, 0.15);
+  --color-accent-glow:    rgba(59, 173, 255, 0.3);
+  --color-accent-hover:   #5dbbff;
+
+  /* Semantic colors */
+  --color-success:        #3dd68c;
+  --color-success-dim:    rgba(61, 214, 140, 0.15);
+  --color-warning:        #f0b429;
+  --color-warning-dim:    rgba(240, 180, 41, 0.15);
+  --color-error:          #ff5f6d;
+  --color-error-dim:      rgba(255, 95, 109, 0.15);
+
+  /* Text hierarchy */
+  --color-text-primary:   #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-text-muted:     #484f58;
+  --color-text-accent:    var(--color-accent);
+
+  /* ── Typography ── */
+  --font-ui:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-brand: 'Syne', 'Inter', sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
+
+  --text-xs:    0.7rem;    /* 11.2px */
+  --text-sm:    0.8rem;    /* 12.8px */
+  --text-base:  0.875rem;  /* 14px */
+  --text-md:    1rem;      /* 16px */
+  --text-lg:    1.125rem;  /* 18px */
+  --text-xl:    1.25rem;   /* 20px */
+
+  /* ── Spacing ── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+
+  /* ── Border Radius ── */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  18px;
+  --radius-full: 999px;
+
+  /* ── Shadows ── */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.5);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.6);
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.35);
+  --shadow-card-hover: 0 6px 20px rgba(0,0,0,0.5);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,0.75);
+
+  /* ── Transitions ── */
+  --tr-fast:    all 0.12s ease;
+  --tr-base:    all 0.2s ease;
+  --tr-smooth:  all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Layout ── */
+  --sidebar-w:  210px;
+  --topbar-h:   64px;
+  --statusbar-h: 30px;
+}

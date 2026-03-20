@@ -1,0 +1,319 @@
+/* ═══════════════════════════════════════════════════
+   layout.css — App shell structure (sidebar, main, statusbar)
+═══════════════════════════════════════════════════ */
+
+/* ── App Shell: three-column layout ── */
+.app-shell {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--color-bg-base);
+}
+
+/* ── Main wrapper: main content + status bar stacked ── */
+.main-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════ */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-sidebar);
+  border-right: 1px solid var(--color-border-subtle);
+  padding: var(--space-5) 0;
+  /* Subtle scanline texture */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.012) 2px,
+      rgba(255,255,255,0.012) 4px
+    );
+  position: relative;
+  z-index: 10;
+}
+
+/* Brand logo area */
+.sidebar__brand {
+  padding: 0 var(--space-5) var(--space-5);
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: var(--space-3);
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0; /* allow children to shrink below intrinsic size */
+  overflow: hidden;
+}
+
+/* Works for both SVG and PNG logos */
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  object-fit: contain; /* keeps PNG aspect ratio */
+}
+
+/* Inter fits tighter than Syne in the fixed 210px sidebar */
+.brand-name {
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Navigation list */
+.sidebar__nav {
+  flex: 1;
+  padding: 0 var(--space-3);
+}
+
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Engine update banner */
+.engine-update-banner {
+  margin: 0 var(--space-3) var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-warning-dim);
+  border: 1px solid rgba(240,180,41,0.3);
+  border-radius: var(--radius-md);
+}
+
+.update-banner__label {
+  font-size: var(--text-xs);
+  color: var(--color-warning);
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.btn-update-engine {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-warning);
+  color: #1a1200;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  transition: var(--tr-base);
+  text-align: center;
+}
+
+.btn-update-engine:hover {
+  background: #ffc940;
+  transform: translateY(-1px);
+}
+
+/* Sidebar bottom (Settings) */
+.sidebar__bottom {
+  padding: var(--space-3) var(--space-3) 0;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* ══════════════════════════════════════
+   TOPBAR
+══════════════════════════════════════ */
+.topbar {
+  display: flex;
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-surface);
+  gap: var(--space-3);
+  flex-shrink: 0;
+  min-height: var(--topbar-h);
+}
+
+.topbar__url-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.url-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--space-4);
+  gap: var(--space-3);
+  transition: var(--tr-base);
+}
+
+.url-input-wrap:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
+}
+
+/* Suppress the global :focus-visible outline inside the input wrap —
+   the wrap itself provides the visual focus ring. */
+.url-input-wrap .url-input:focus-visible {
+  outline: none;
+}
+
+.url-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   MAIN CONTENT
+══════════════════════════════════════ */
+.main-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Views */
+.view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: fade-in 0.2s ease;
+}
+
+/* .view--active is only used as initial marker in HTML;
+   the router controls visibility exclusively via inline style.
+   Do NOT use !important here — it would override router's display:none. */
+.view--active {
+  display: flex;
+}
+
+/* ══════════════════════════════════════
+   STATUS BAR
+══════════════════════════════════════ */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--statusbar-h);
+  padding: 0 var(--space-5);
+  background: var(--color-bg-sidebar);
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  gap: var(--space-4);
+}
+
+.status-bar__left,
+.status-bar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;        /* allow flex children to shrink below intrinsic size */
+  overflow: hidden;    /* clip any content that still overflows */
+  white-space: nowrap; /* single line — no wrapping */
+}
+
+.status-bar__right {
+  justify-content: flex-end;
+  flex-shrink: 0; /* right side holds the badge — don't let it collapse */
+}
+
+.status-bar__center {
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.status-engine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Prevent the engine name text from wrapping */
+.status-engine .mono {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Storage path — truncate rather than wrap */
+#status-storage {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Update badge must never wrap or shrink away */
+.status-update-badge {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.status-sep {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE (min 1024px breakpoint)
+══════════════════════════════════════ */
+@media (max-width: 1100px) {
+  :root {
+    --sidebar-w: 180px;
+  }
+  .brand-name {
+    font-size: var(--text-base);
+  }
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-w: 56px;
+  }
+  .brand-name,
+  .nav-btn span,
+  .sidebar__bottom .nav-btn span,
+  .update-banner__label { display: none; }
+
+  /* !important required — sidebar.js sets style="display:block" inline
+     when an update is available, which beats normal media query rules.
+     This ensures the banner never bleeds out of the 56px collapsed rail. */
+  .engine-update-banner { display: none !important; }
+
+  .sidebar__brand { padding: 0 var(--space-2) var(--space-3); justify-content: center; }
+  .brand-logo { justify-content: center; }
+  .nav-btn { justify-content: center; padding: var(--space-3); }
+  .sidebar__nav, .sidebar__bottom { padding: 0 var(--space-2); }
+}

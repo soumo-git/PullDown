@@ -1,0 +1,140 @@
+/* ═══════════════════════════════════════════════════
+   base.css — Reset, global defaults, typography
+═══════════════════════════════════════════════════ */
+
+/* ── Box-model reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Root ── */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  background: var(--color-bg-base);
+  line-height: 1.5;
+  overflow: hidden; /* desktop app — no page scroll */
+  user-select: none; /* native app feel; text selection via JS where needed */
+}
+
+/* ── Scrollbar (Webkit) ── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ── Typography helpers ── */
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.02em;
+}
+
+/* ── Base interactive resets ── */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  outline: none;
+}
+
+input, textarea {
+  font-family: inherit;
+  color: inherit;
+  outline: none;
+  border: none;
+  background: none;
+}
+
+ul, ol { list-style: none; }
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── Focus visible (keyboard accessibility) ── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Visually hidden (a11y) ── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Entrance animations ── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-out-right {
+  from { opacity: 1; transform: translateX(0) scaleY(1); max-height: 200px; }
+  to   { opacity: 0; transform: translateX(20px) scaleY(0.8); max-height: 0; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(59,173,255,0.4); }
+  50%       { opacity: 0.7; box-shadow: 0 0 0 4px rgba(59,173,255,0); }
+}
+
+@keyframes pulse-dot-green {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(61,214,140,0.4); }
+  50%       { box-shadow: 0 0 0 4px rgba(61,214,140,0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Card entrance stagger ── */
+.queue-card {
+  animation: fade-in 0.25s ease both;
+}
+.queue-card:nth-child(1) { animation-delay: 0.02s; }
+.queue-card:nth-child(2) { animation-delay: 0.07s; }
+.queue-card:nth-child(3) { animation-delay: 0.12s; }
+.queue-card:nth-child(n+4) { animation-delay: 0.15s; }
