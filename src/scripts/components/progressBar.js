@@ -26,11 +26,12 @@ export function updateQueueHeader() {
   const statusEl = document.getElementById('status-active-label');
 
   const tab = currentDownloadsTab();
+  const scanActive = isLibraryScanActive();
+  const statusOwned = isLibraryStatusOwned();
+  const downloadedCount = readDownloadedCountFromView();
   const allItems = state.queueArray();
   const queueItems = allItems.filter((item) => item.status !== 'completed');
-  const downloadedItems = allItems.filter((item) => item.status === 'completed');
-  const visibleItems = tab === 'downloaded' ? downloadedItems : queueItems;
-  const total = visibleItems.length;
+  const total = tab === 'downloaded' ? downloadedCount : queueItems.length;
   const active = queueItems.filter(
     (item) => item.status === 'downloading' || item.status === 'postprocessing'
   ).length;
@@ -57,7 +58,9 @@ export function updateQueueHeader() {
   }
 
   if (statusEl) {
-    if (tab === 'downloaded') {
+    if (tab === 'downloaded' && (scanActive || statusOwned)) {
+      // app.js owns downloaded-tab status text.
+    } else if (tab === 'downloaded') {
       statusEl.textContent = total > 0
         ? `${total} downloaded item${total > 1 ? 's' : ''}`
         : 'No downloaded items yet';
@@ -75,4 +78,21 @@ function currentDownloadsTab() {
   const view = document.getElementById('view-downloads');
   const tab = view?.dataset?.activeTab;
   return tab === 'downloaded' ? 'downloaded' : 'queue';
+}
+
+function readDownloadedCountFromView() {
+  const view = document.getElementById('view-downloads');
+  const raw = Number(view?.dataset?.downloadedCount ?? '0');
+  if (!Number.isFinite(raw) || raw < 0) return 0;
+  return Math.floor(raw);
+}
+
+function isLibraryScanActive() {
+  const view = document.getElementById('view-downloads');
+  return view?.dataset?.libraryScanActive === 'true';
+}
+
+function isLibraryStatusOwned() {
+  const view = document.getElementById('view-downloads');
+  return view?.dataset?.libraryStatusOwned === 'true';
 }

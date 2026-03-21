@@ -7,6 +7,7 @@ use crate::core::domain::{
 };
 use crate::core::errors::AppError;
 use crate::infrastructure::engines;
+use crate::infrastructure::media_library;
 use crate::services::queue::PreparedDownload;
 use crate::AppState;
 
@@ -170,6 +171,26 @@ pub fn app_play_media(state: State<'_, AppState>, request: OpenPathRequest) -> R
     state
         .play_media(request.path.as_deref())
         .map_err(to_error_string)
+}
+
+#[tauri::command]
+pub fn library_scan_start(app: AppHandle) -> Result<u64, String> {
+    Ok(media_library::start_scan(app))
+}
+
+#[tauri::command]
+pub fn library_scan_pause() -> Result<bool, String> {
+    Ok(media_library::pause_scan())
+}
+
+#[tauri::command]
+pub fn library_scan_resume() -> Result<bool, String> {
+    Ok(media_library::resume_scan())
+}
+
+#[tauri::command]
+pub fn library_scan_stop() -> Result<bool, String> {
+    Ok(media_library::stop_scan())
 }
 
 #[tauri::command]

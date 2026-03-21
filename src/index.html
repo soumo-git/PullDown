@@ -150,7 +150,7 @@
                   id="url-input"
                   type="url"
                   class="url-input"
-                  placeholder="Paste URL — YouTube · Vimeo · Twitter · Reddit..."
+                  placeholder="Paste URL - YouTube | Vimeo | Twitter | Reddit..."
                   aria-label="Video URL input"
                   autocomplete="off"
                   spellcheck="false"
@@ -215,6 +215,17 @@
               </div>
               <div class="queue-header__right">
                 <span id="speed-indicator" class="speed-indicator" aria-live="polite"></span>
+                <div id="downloaded-scan-controls" class="scan-controls" style="display:none;">
+                  <button id="btn-scan-start" class="btn btn--ghost btn--sm" aria-label="Start downloaded media scan">
+                    Start Scan
+                  </button>
+                  <button id="btn-scan-pause" class="btn btn--ghost btn--sm" aria-label="Pause or resume downloaded media scan" disabled>
+                    Pause
+                  </button>
+                  <button id="btn-scan-stop" class="btn btn--ghost btn--sm" aria-label="Stop downloaded media scan" disabled>
+                    Stop
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -361,6 +372,12 @@
           </div>
           <div class="status-bar__center">
             <span id="status-active-label" class="mono" aria-live="polite">Ready</span>
+            <div id="library-scan-progress" class="library-scan-progress" aria-live="polite" style="display:none;">
+              <div class="library-scan-progress__bar">
+                <div id="library-scan-progress-fill" class="library-scan-progress__fill" data-indeterminate="false"></div>
+              </div>
+              <span id="library-scan-progress-text" class="library-scan-progress__text mono">Scanning local media...</span>
+            </div>
           </div>
           <div class="status-bar__right">
             <span class="mono" id="status-storage">~/Downloads · 128 GB free</span>

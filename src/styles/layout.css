@@ -245,11 +245,20 @@
 
 .status-bar__center {
   flex: 1;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+#status-active-label {
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
 }
 
 .status-engine {

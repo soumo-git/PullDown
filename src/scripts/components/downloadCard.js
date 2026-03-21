@@ -269,13 +269,15 @@ function buildActions(item) {
     openBtn.addEventListener('click', () => openInFileManager(item.filePath));
     wrap.appendChild(openBtn);
 
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'btn-icon btn-icon--danger';
-    removeBtn.innerHTML = ICON_CANCEL;
-    removeBtn.title = 'Remove from queue';
-    removeBtn.setAttribute('aria-label', 'Remove completed item');
-    removeBtn.addEventListener('click', () => removeDownload(item.id));
-    wrap.appendChild(removeBtn);
+    if (item.source !== 'library') {
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'btn-icon btn-icon--danger';
+      removeBtn.innerHTML = ICON_CANCEL;
+      removeBtn.title = 'Remove from queue';
+      removeBtn.setAttribute('aria-label', 'Remove completed item');
+      removeBtn.addEventListener('click', () => removeDownload(item.id));
+      wrap.appendChild(removeBtn);
+    }
     return wrap;
   }
 

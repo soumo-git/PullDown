@@ -8,6 +8,7 @@ mod core {
 }
 mod infrastructure {
     pub mod engines;
+    pub mod media_library;
     pub mod storage;
     pub mod system;
 }
@@ -249,6 +250,10 @@ pub fn run() {
             app::commands::engines_install_ffmpeg,
             app::commands::app_open_in_file_manager,
             app::commands::app_play_media,
+            app::commands::library_scan_start,
+            app::commands::library_scan_pause,
+            app::commands::library_scan_resume,
+            app::commands::library_scan_stop,
             app::commands::download_validate_url,
             app::commands::download_extract_metadata,
             app::commands::download_extract_formats,

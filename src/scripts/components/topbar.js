@@ -13,10 +13,30 @@ const getFormatBtn = () => document.getElementById('btn-format');
 const getFormatLabel = () => document.getElementById('btn-format-label');
 const getStatusText = () => document.getElementById('status-active-label');
 
+const URL_PLACEHOLDER = 'Paste URL - YouTube | Vimeo | Twitter | Reddit...';
+const SEARCH_PLACEHOLDER = 'Search downloaded files by title or path...';
+
+let topbarMode = 'queue';
+
+function isDownloadedSearchMode() {
+  return topbarMode === 'downloaded';
+}
+
+function emitDownloadedSearchQuery() {
+  if (!isDownloadedSearchMode()) return;
+  const input = getInput();
+  stateEmitter.emit('downloads:search', input?.value ?? '');
+}
+
 function onInputChange() {
   const input = getInput();
   const addBtn = getAddBtn();
   if (!input || !addBtn) return;
+  if (isDownloadedSearchMode()) {
+    addBtn.disabled = true;
+    emitDownloadedSearchQuery();
+    return;
+  }
   const valid = isValidUrl(input.value);
   addBtn.disabled = !valid;
 }
@@ -24,8 +44,10 @@ function onInputChange() {
 function setBusy(busy, label = 'Ready') {
   const addBtn = getAddBtn();
   const formatBtn = getFormatBtn();
-  if (addBtn) addBtn.disabled = busy || !isValidUrl(getInput()?.value || '');
-  if (formatBtn) formatBtn.disabled = busy;
+  if (addBtn) {
+    addBtn.disabled = isDownloadedSearchMode() || busy || !isValidUrl(getInput()?.value || '');
+  }
+  if (formatBtn) formatBtn.disabled = isDownloadedSearchMode() || busy;
   const status = getStatusText();
   if (status) status.textContent = label;
 }
@@ -33,6 +55,7 @@ function setBusy(busy, label = 'Ready') {
 async function loadFormatsForInputUrl() {
   const input = getInput();
   if (!input) return false;
+  if (isDownloadedSearchMode()) return false;
   const urlStr = input.value.trim();
   if (!isValidUrl(urlStr)) return false;
   if (!isTauriEnvironment()) return false;
@@ -54,6 +77,11 @@ async function loadFormatsForInputUrl() {
 }
 
 async function onAddClick() {
+  if (isDownloadedSearchMode()) {
+    emitDownloadedSearchQuery();
+    return;
+  }
+
   const input = getInput();
   if (!input) return;
   const urlStr = input.value.trim();
@@ -114,6 +142,7 @@ async function onAddClick() {
 function buildPendingJob(id, url, selectedFormat) {
   return {
     id,
+    source: 'queue',
     title: 'Preparing download...',
     url,
     platform: 'Web',
@@ -151,6 +180,35 @@ function syncFormatLabel(fmt) {
   label.textContent = `${prefix} ${fmt.label}`;
 }
 
+function applyTopbarMode(tab) {
+  const mode = tab === 'downloaded' ? 'downloaded' : 'queue';
+  topbarMode = mode;
+
+  const input = getInput();
+  const addBtn = getAddBtn();
+  const fmtBtn = getFormatBtn();
+
+  if (input) {
+    input.type = mode === 'downloaded' ? 'text' : 'url';
+    input.placeholder = mode === 'downloaded' ? SEARCH_PLACEHOLDER : URL_PLACEHOLDER;
+  }
+
+  if (fmtBtn) {
+    fmtBtn.style.display = mode === 'downloaded' ? 'none' : '';
+    fmtBtn.disabled = mode === 'downloaded';
+  }
+  if (addBtn) {
+    addBtn.style.display = mode === 'downloaded' ? 'none' : '';
+  }
+
+  if (mode === 'downloaded') {
+    emitDownloadedSearchQuery();
+  } else {
+    stateEmitter.emit('downloads:search', '');
+  }
+  onInputChange();
+}
+
 export function initTopbar() {
   const input = getInput();
   const addBtn = getAddBtn();
@@ -159,6 +217,11 @@ export function initTopbar() {
   input?.addEventListener('input', onInputChange);
   input?.addEventListener('paste', () => setTimeout(onInputChange, 0));
   input?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && isDownloadedSearchMode()) {
+      e.preventDefault();
+      emitDownloadedSearchQuery();
+      return;
+    }
     if (e.key === 'Enter' && !addBtn?.disabled) {
       e.preventDefault();
       onAddClick();
@@ -168,11 +231,15 @@ export function initTopbar() {
   addBtn?.addEventListener('click', onAddClick);
 
   fmtBtn?.addEventListener('click', async () => {
+    if (isDownloadedSearchMode()) return;
     await loadFormatsForInputUrl();
     openModal();
   });
 
   stateEmitter.on('format:change', syncFormatLabel);
+  stateEmitter.on('downloads:tab:change', (payload) => {
+    applyTopbarMode(payload?.tab);
+  });
   syncFormatLabel(state.selectedFormat);
-  onInputChange();
+  applyTopbarMode('queue');
 }

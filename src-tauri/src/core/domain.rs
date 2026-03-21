@@ -75,6 +75,17 @@ pub struct VideoMetadata {
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct LibraryVideoItem {
+    pub id: String,
+    pub title: String,
+    pub path: String,
+    pub created_unix_seconds: u64,
+    pub size_bytes: u64,
+    pub extension: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DownloadFormatOption {
     pub id: String,
     pub label: String,
@@ -165,4 +176,25 @@ pub struct EngineInstallProgressEvent {
     pub progress_percent: Option<u8>,
     pub bytes_downloaded: Option<u64>,
     pub bytes_total: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryScanProgressEvent {
+    pub scan_id: u64,
+    pub scanned_files: u64,
+    pub matched_files: u64,
+    pub visited_dirs: u64,
+    pub roots_done: u32,
+    pub roots_total: u32,
+    pub paused: bool,
+    pub done: bool,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryScanBatchEvent {
+    pub scan_id: u64,
+    pub items: Vec<LibraryVideoItem>,
 }

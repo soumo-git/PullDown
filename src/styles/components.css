@@ -276,6 +276,12 @@
   gap: var(--space-3);
 }
 
+.queue-header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .queue-title {
   font-family: var(--font-brand);
   font-size: var(--text-md);
@@ -327,6 +333,17 @@
   font-size: var(--text-xs);
   color: var(--color-accent);
   letter-spacing: 0.03em;
+}
+
+.scan-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.scan-controls .btn {
+  min-width: 88px;
+  justify-content: center;
 }
 
 .queue-list {
@@ -775,6 +792,55 @@
   font-size: var(--text-xs);
   color: var(--color-warning);
   font-weight: 500;
+}
+
+.library-scan-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: min(360px, 100%);
+  max-width: 100%;
+}
+
+.library-scan-progress__bar {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-hover);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+  position: relative;
+}
+
+.library-scan-progress__fill {
+  width: 0%;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  transition: width 0.2s linear;
+  position: relative;
+}
+
+.library-scan-progress__fill[data-indeterminate="true"] {
+  animation: library-scan-indeterminate 1.25s ease-in-out infinite;
+}
+
+.library-scan-progress__text {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+@keyframes library-scan-indeterminate {
+  0% {
+    transform: translateX(-130%);
+  }
+  50% {
+    transform: translateX(20%);
+  }
+  100% {
+    transform: translateX(230%);
+  }
 }
 
 /* ══════════════════════════════════════
