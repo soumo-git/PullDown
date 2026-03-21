@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PullDown — Free Video Downloader & Converter</title>
+  <meta name="description" content="Free, open-source desktop video downloader & converter. Powered by yt-dlp + ffmpeg. Download from 1000+ sites at full quality. No subscriptions. No watermarks." />
+  <meta property="og:title" content="PullDown — Free Video Downloader & Converter" />
+  <meta property="og:description" content="No subscriptions. No limits. Powered by yt-dlp + ffmpeg." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --color-bg-base:      #0d1117;
+      --color-bg-surface:   #161b22;
+      --color-bg-elevated:  #1c2333;
+      --color-bg-hover:     #21283a;
+      --color-bg-sidebar:   #0f1419;
+      --color-bg-input:     #1a2030;
+      --color-border:       #2d3748;
+      --color-border-subtle:#1e2536;
+      --color-accent:       #3badff;
+      --color-accent-dim:   rgba(59,173,255,0.15);
+      --color-accent-glow:  rgba(59,173,255,0.3);
+      --color-accent-hover: #5dbbff;
+      --color-success:      #3dd68c;
+      --color-success-dim:  rgba(61,214,140,0.15);
+      --color-warning:      #f0b429;
+      --color-warning-dim:  rgba(240,180,41,0.15);
+      --color-error:        #ff5f6d;
+      --color-text-primary: #e6edf3;
+      --color-text-secondary:#8b949e;
+      --color-text-muted:   #484f58;
+      --font-ui:   'Inter', system-ui, sans-serif;
+      --font-brand:'Syne', 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --sidebar-w: 210px;
+      --topbar-h:  64px;
+      --statusbar-h: 30px;
+      --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 18px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; -webkit-font-smoothing: antialiased; }
+    body { background: var(--color-bg-base); color: var(--color-text-primary); font-family: var(--font-ui); line-height: 1.6; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 999px; }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: linear-gradient(rgba(59,173,255,.02) 1px, transparent 1px), linear-gradient(90deg, rgba(59,173,255,.02) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%);
+    }
+    * { position: relative; z-index: 1; }
+
+    /* SCROLL PROGRESS BAR */
+    .scroll-progress { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--color-accent), #a78bfa, var(--color-accent)); width: 0%; z-index: 999; transition: width .1s linear; }
+
+    /* CURSOR GLOW */
+    .cursor-glow { position: fixed; width: 600px; height: 600px; border-radius: 50%; pointer-events: none; z-index: 0; background: radial-gradient(circle, rgba(59,173,255,.06) 0%, transparent 70%); transform: translate(-50%,-50%); transition: left .3s ease, top .3s ease; will-change: left, top; }
+
+    /* AMBIENT ORBS */
+    .ambient-orb { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(80px); opacity: .4; }
+    .orb-1 { width: 400px; height: 400px; background: rgba(59,173,255,.12); top: 10%; left: -5%; animation: orbFloat1 18s ease-in-out infinite; }
+    .orb-2 { width: 350px; height: 350px; background: rgba(167,139,250,.1); bottom: 20%; right: -8%; animation: orbFloat2 22s ease-in-out infinite; }
+    .orb-3 { width: 300px; height: 300px; background: rgba(61,214,140,.07); top: 50%; left: 60%; animation: orbFloat3 20s ease-in-out infinite; }
+    @keyframes orbFloat1 { 0%,100% { transform: translate(0,0); } 33% { transform: translate(40px,-30px); } 66% { transform: translate(-20px,40px); } }
+    @keyframes orbFloat2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-50px,-40px); } }
+    @keyframes orbFloat3 { 0%,100% { transform: translate(0,0); } 40% { transform: translate(30px,50px); } 80% { transform: translate(-40px,-20px); } }
+
+    /* NOISE TEXTURE OVERLAY */
+    .noise-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+    /* NAV */
+    .site-nav { position: fixed; top: 2px; left: 0; right: 0; height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; background: rgba(13,17,23,.75); backdrop-filter: blur(24px) saturate(1.4); border-bottom: 1px solid rgba(255,255,255,.04); z-index: 200; transition: background .3s, box-shadow .3s; }
+    .site-nav.scrolled { background: rgba(13,17,23,.92); box-shadow: 0 4px 30px rgba(0,0,0,.3); }
+    .nav-brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-ui); font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-text-primary); text-decoration: none; transition: transform .2s; }
+    .nav-brand:hover { transform: scale(1.03); }
+    .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+    .nav-links a { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-decoration: none; transition: color .25s; position: relative; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1.5px; background: var(--color-accent); border-radius: 999px; transition: width .25s ease; }
+    .nav-links a:hover { color: var(--color-text-primary); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-dl { display: inline-flex; align-items: center; gap: 7px; padding: 7px 18px; background: linear-gradient(135deg, var(--color-accent), #5dbbff); color: #001824 !important; border-radius: var(--radius-md); font-weight: 700 !important; font-size: 13px !important; transition: transform .2s, box-shadow .2s; position: relative; overflow: hidden; }
+    .nav-dl::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent); transform: translateX(-100%); transition: transform .5s; }
+    .nav-dl:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--color-accent-glow); }
+    .nav-dl:hover::before { transform: translateX(100%); }
+
+    /* HERO */
+    .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 110px 24px 60px; position: relative; }
+    .hero::before { content: ''; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 700px; height: 500px; background: radial-gradient(ellipse, rgba(59,173,255,.08) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px; margin-bottom: 28px; background: rgba(59,173,255,.08); border: 1px solid rgba(59,173,255,.15); border-radius: 999px; font-family: var(--font-mono); font-size: 11px; color: var(--color-accent); letter-spacing: .06em; opacity: 0; animation: fadeUp .5s ease forwards .1s; backdrop-filter: blur(8px); }
+    .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent); animation: pulseDot 2s ease infinite; box-shadow: 0 0 8px var(--color-accent); }
+    .hero h1 { font-family: var(--font-brand); font-size: clamp(46px,8vw,88px); font-weight: 800; line-height: 1.0; letter-spacing: -.03em; margin-bottom: 22px; opacity: 0; animation: fadeUp .6s ease forwards .2s; }
+    .hero h1 .ac { background: linear-gradient(135deg, var(--color-accent) 0%, #a78bfa 50%, var(--color-accent) 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 4s ease infinite; }
+    @keyframes gradientShift { 0% { background-position: 0% center; } 50% { background-position: 100% center; } 100% { background-position: 0% center; } }
+    .hero-sub { font-size: clamp(15px,2vw,19px); color: var(--color-text-secondary); max-width: 560px; line-height: 1.7; margin-bottom: 44px; opacity: 0; animation: fadeUp .6s ease forwards .35s; }
+    .hero-btns { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; opacity: 0; animation: fadeUp .6s ease forwards .5s; }
+    .btn-primary { display: inline-flex; align-items: center; gap: 9px; padding: 14px 32px; background: linear-gradient(135deg, var(--color-accent), #5dbbff); color: #001824; border-radius: var(--radius-md); font-weight: 700; font-size: 15px; text-decoration: none; transition: transform .25s, box-shadow .25s; box-shadow: 0 0 30px var(--color-accent-glow), 0 4px 15px rgba(0,0,0,.3); position: relative; overflow: hidden; }
+    .btn-primary::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent); transform: translateX(-100%); transition: transform .6s; }
+    .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 0 50px var(--color-accent-glow), 0 8px 25px rgba(0,0,0,.3); }
+    .btn-primary:hover::after { transform: translateX(100%); }
+    .btn-ghost { display: inline-flex; align-items: center; gap: 9px; padding: 14px 28px; background: rgba(255,255,255,.03); color: var(--color-text-primary); border: 1px solid var(--color-border); border-radius: var(--radius-md); font-weight: 600; font-size: 15px; text-decoration: none; transition: all .25s; backdrop-filter: blur(4px); }
+    .btn-ghost:hover { border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.06); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.2); }
+    .hero-meta { margin-top: 28px; font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); letter-spacing: .05em; opacity: 0; animation: fadeUp .6s ease forwards .65s; }
+    .hero-meta span { display: inline-block; padding: 0 6px; transition: color .2s; }
+    .hero-meta span:hover { color: var(--color-text-secondary); }
+
+    /* INTERACTIVE APP DEMO */
+    .demo-wrap { padding: 0 24px 90px; display: flex; justify-content: center; opacity: 0; animation: fadeUp .7s ease forwards .75s; perspective: 1200px; }
+    .app-frame { width: 100%; max-width: 980px; border: 1px solid rgba(59,173,255,.12); border-radius: var(--radius-xl); overflow: hidden; box-shadow: 0 0 0 1px rgba(59,173,255,.07), 0 40px 100px rgba(0,0,0,.7), 0 0 120px rgba(59,173,255,.06); transition: transform .4s ease, box-shadow .4s ease; position: relative; }
+    .app-frame::before { content: ''; position: absolute; inset: -1px; border-radius: var(--radius-xl); background: linear-gradient(135deg, rgba(59,173,255,.2), transparent 40%, transparent 60%, rgba(167,139,250,.15)); z-index: -1; pointer-events: none; opacity: .7; }
+    .app-frame:hover { box-shadow: 0 0 0 1px rgba(59,173,255,.12), 0 50px 120px rgba(0,0,0,.75), 0 0 150px rgba(59,173,255,.08); }
+    .app-titlebar { height: 34px; background: var(--color-bg-sidebar); border-bottom: 1px solid var(--color-border-subtle); display: flex; align-items: center; padding: 0 14px; gap: 7px; }
+    .tbar-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .tbar-dot.r { background: #ff5f57; } .tbar-dot.a { background: #febc2e; } .tbar-dot.g { background: #28c840; }
+    .tbar-label { margin: 0 auto; font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); letter-spacing: .06em; }
+    /* APP SHELL — exact match to app CSS */
+    .app-shell { display: flex; width: 100%; height: 500px; overflow: hidden; background: var(--color-bg-base); font-size: 14px; font-family: var(--font-ui); }
+    .sidebar { width: var(--sidebar-w); flex-shrink: 0; display: flex; flex-direction: column; background: var(--color-bg-sidebar); border-right: 1px solid var(--color-border-subtle); padding: 18px 0; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,.012) 2px, rgba(255,255,255,.012) 4px); }
+    .sidebar__brand { padding: 0 18px 16px; border-bottom: 1px solid var(--color-border-subtle); margin-bottom: 10px; }
+    .brand-logo { display: flex; align-items: center; gap: 9px; overflow: hidden; min-width: 0; }
+    .brand-icon { width: 34px; height: 34px; object-fit: contain; flex-shrink: 0; }
+    .brand-name { font-family: var(--font-ui); font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .sidebar__nav { flex: 1; padding: 0 10px; }
+    .nav-list { display: flex; flex-direction: column; gap: 3px; list-style: none; }
+    .nav-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 10px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; color: var(--color-text-secondary); background: none; border: 1px solid transparent; cursor: pointer; transition: all .15s; position: relative; font-family: var(--font-ui); }
+    .nav-btn:hover { background: var(--color-bg-hover); color: var(--color-text-primary); }
+    .nav-btn.active { background: var(--color-accent-dim); color: var(--color-accent); border-color: rgba(59,173,255,.2); }
+    .nav-btn.active::before { content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: var(--color-accent); border-radius: 0 999px 999px 0; }
+    .nav-icon { width: 17px; height: 17px; flex-shrink: 0; }
+    .sidebar__bottom { padding: 10px 10px 0; border-top: 1px solid var(--color-border-subtle); }
+    .engine-update-banner { margin: 0 10px 10px; padding: 10px; background: var(--color-warning-dim); border: 1px solid rgba(240,180,41,.3); border-radius: var(--radius-md); }
+    .update-banner__label { font-size: 11px; color: var(--color-warning); font-weight: 600; margin-bottom: 7px; }
+    .btn-update-engine { width: 100%; padding: 5px 10px; background: var(--color-warning); color: #1a1200; font-size: 11px; font-weight: 700; border-radius: var(--radius-sm); border: none; cursor: pointer; transition: all .15s; text-align: center; font-family: var(--font-ui); }
+    .btn-update-engine:hover { background: #ffc940; transform: translateY(-1px); }
+    /* Main layout */
+    .main-wrapper { display: flex; flex-direction: column; flex: 1; min-width: 0; overflow: hidden; }
+    .topbar { display: flex; align-items: center; padding: 0 20px; height: var(--topbar-h); border-bottom: 1px solid var(--color-border-subtle); background: var(--color-bg-surface); gap: 10px; flex-shrink: 0; }
+    .topbar__url-group { display: flex; align-items: center; gap: 10px; width: 100%; }
+    .url-input-wrap { flex: 1; display: flex; align-items: center; background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 0 14px; gap: 10px; transition: all .2s; }
+    .url-input-wrap:focus-within { border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--color-accent-glow); }
+    .url-icon { width: 15px; height: 15px; color: var(--color-text-muted); flex-shrink: 0; }
+    .url-input { flex: 1; height: 40px; background: transparent; font-size: 14px; font-family: var(--font-ui); color: var(--color-text-primary); border: none; outline: none; }
+    .url-input::placeholder { color: var(--color-text-muted); font-size: 13px; }
+    .url-input-wrap .url-input:focus-visible { outline: none; }
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px; border-radius: var(--radius-md); font-size: 12px; font-weight: 600; font-family: var(--font-ui); white-space: nowrap; border: 1px solid transparent; cursor: pointer; transition: all .15s; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+    .btn--primary { background: var(--color-accent); color: #001824; border-color: var(--color-accent); }
+    .btn--primary:hover:not(:disabled) { background: var(--color-accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px var(--color-accent-glow); }
+    .btn--ghost { background: var(--color-bg-elevated); color: var(--color-text-secondary); border-color: var(--color-border); }
+    .btn--ghost:hover:not(:disabled) { background: var(--color-bg-hover); color: var(--color-text-primary); }
+    .btn--sm { height: 28px; padding: 0 12px; font-size: 11px; border-radius: var(--radius-sm); }
+    /* Views */
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .view--placeholder { align-items: center; justify-content: center; }
+    .placeholder-panel { display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: 380px; text-align: center; padding: 24px; }
+    .placeholder-title { font-family: var(--font-brand); font-size: 18px; font-weight: 700; color: var(--color-text-primary); letter-spacing: .04em; }
+    .placeholder-desc { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+    /* Queue */
+    .queue-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px 8px; flex-shrink: 0; }
+    .queue-header__left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .queue-header__right { display: flex; align-items: center; gap: 10px; }
+    .queue-title { font-family: var(--font-brand); font-size: 15px; font-weight: 700; letter-spacing: .04em; }
+    .queue-tabs { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-bg-elevated); }
+    .queue-tab { height: 26px; padding: 0 12px; border-radius: 999px; border: 1px solid transparent; background: transparent; color: var(--color-text-secondary); font-size: 11px; font-weight: 600; font-family: var(--font-ui); cursor: pointer; transition: all .15s; }
+    .queue-tab:hover { color: var(--color-text-primary); }
+    .queue-tab.is-active { color: var(--color-accent); background: var(--color-accent-dim); border-color: rgba(59,173,255,.22); }
+    /* Badges */
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; background: var(--color-bg-elevated); border: 1px solid var(--color-border); border-radius: 999px; font-size: 11px; color: var(--color-text-secondary); font-weight: 500; white-space: nowrap; font-family: var(--font-mono); }
+    .badge--active { background: var(--color-accent-dim); border-color: rgba(59,173,255,.2); color: var(--color-accent); }
+    .badge--res { background: var(--color-accent-dim); border-color: rgba(59,173,255,.25); color: var(--color-accent); font-size: 10px; }
+    .badge--codec { background: var(--color-bg-elevated); border-color: var(--color-border); color: var(--color-text-secondary); font-size: 10px; }
+    .badge--complete { background: var(--color-success-dim); border-color: rgba(61,214,140,.25); color: var(--color-success); }
+    .badge--platform { font-size: 10px; color: var(--color-text-muted); background: transparent; border-color: transparent; padding: 0; }
+    /* Speed indicator */
+    .speed-indicator { font-family: var(--font-mono); font-size: 11px; color: var(--color-accent); }
+    /* Queue list & cards */
+    .queue-list { flex: 1; overflow-y: auto; padding: 0 14px 10px; display: flex; flex-direction: column; gap: 10px; }
+    .queue-card { background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 14px; display: flex; gap: 14px; align-items: flex-start; transition: all .25s; box-shadow: 0 2px 8px rgba(0,0,0,.35); flex-shrink: 0; position: relative; overflow: hidden; }
+    .queue-card:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.5); background: var(--color-bg-elevated); }
+    .queue-card[data-status="queued"] { opacity: .7; }
+    .queue-card[data-status="completed"] { border-color: rgba(61,214,140,.2); }
+    .card-thumb { width: 76px; height: 50px; border-radius: var(--radius-sm); flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+    .card-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .card-thumb__play { color: rgba(255,255,255,.9); position: relative; z-index: 1; }
+    .card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+    .card-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    /* Progress */
+    .progress-wrap { width: 100%; }
+    .progress-bar { width: 100%; height: 5px; background: var(--color-bg-hover); border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 999px; background: var(--color-accent); transition: width .8s cubic-bezier(.4,0,.2,1); position: relative; overflow: hidden; }
+    .progress-fill--complete { background: var(--color-success); }
+    .progress-fill[data-active="true"]::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.45) 50%, transparent 100%); background-size: 200% 100%; animation: shimmer 1.8s linear infinite; }
+    /* Card status */
+    .card-status-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .card-status-text { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-status-text--complete { color: var(--color-success); }
+    .card-pct { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); flex-shrink: 0; }
+    .card-actions { display: flex; flex-direction: column; gap: 7px; align-items: flex-end; flex-shrink: 0; }
+    /* Icon buttons */
+    .btn-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-bg-elevated); color: var(--color-text-secondary); cursor: pointer; transition: all .15s; flex-shrink: 0; }
+    .btn-icon:hover { background: var(--color-bg-hover); color: var(--color-text-primary); }
+    .btn-icon--danger:hover { background: rgba(255,95,109,.15); color: var(--color-error); border-color: rgba(255,95,109,.3); }
+    .btn-icon--success:hover { background: var(--color-success-dim); color: var(--color-success); border-color: rgba(61,214,140,.3); }
+    /* Empty state */
+    .queue-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--color-text-muted); padding: 24px; }
+    .queue-empty__title { font-size: 15px; font-weight: 600; color: var(--color-text-secondary); }
+    .queue-empty__hint { font-size: 12px; text-align: center; }
+    .queue-empty kbd { display: inline-block; padding: 1px 7px; background: var(--color-bg-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 11px; }
+    /* Settings */
+    .settings-panel { padding: 20px 28px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 24px; }
+    .settings-title { font-family: var(--font-brand); font-size: 18px; font-weight: 700; color: var(--color-text-primary); letter-spacing: .04em; }
+    .settings-section { display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--color-border-subtle); }
+    .settings-section:last-child { border-bottom: none; }
+    .settings-section__title { font-size: 13px; font-weight: 700; color: var(--color-text-primary); letter-spacing: .02em; }
+    .settings-section__desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; }
+    /* Engine cards */
+    .engine-cards { display: flex; gap: 12px; }
+    .engine-card { flex: 1; background: var(--color-bg-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 14px; display: flex; flex-direction: column; gap: 9px; }
+    .engine-card__header { display: flex; align-items: center; justify-content: space-between; }
+    .engine-card__name { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--color-text-primary); }
+    .engine-card__version { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-secondary); }
+    .engine-card__latest { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); }
+    /* Status bar */
+    .status-bar { display: flex; align-items: center; justify-content: space-between; height: var(--statusbar-h); padding: 0 18px; background: var(--color-bg-sidebar); border-top: 1px solid var(--color-border-subtle); font-size: 11px; color: var(--color-text-secondary); flex-shrink: 0; gap: 14px; }
+    .status-bar__left, .status-bar__right { display: flex; align-items: center; gap: 10px; flex: 1; white-space: nowrap; overflow: hidden; }
+    .status-bar__right { justify-content: flex-end; flex-shrink: 0; }
+    .status-bar__center { flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .status-engine { display: flex; align-items: center; gap: 6px; }
+    .status-sep { color: var(--color-text-muted); flex-shrink: 0; }
+    /* Status dots */
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .status-dot--active { background: var(--color-accent); animation: pulseDot 2s ease infinite; }
+    .status-dot--green { background: var(--color-success); animation: pulseGreen 2.5s ease infinite; }
+    .status-dot--amber { background: var(--color-warning); }
+    .status-update-badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; background: var(--color-warning-dim); border: 1px solid rgba(240,180,41,.3); border-radius: 999px; font-size: 11px; color: var(--color-warning); font-weight: 500; }
+    .mono { font-family: var(--font-mono); font-size: 11px; letter-spacing: .02em; }
+    /* Modal */
+    .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 50; }
+    .modal { background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); width: 440px; max-width: 92%; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.75); }
+    .modal__header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--color-border-subtle); }
+    .modal__title { font-family: var(--font-brand); font-size: 15px; font-weight: 700; letter-spacing: .04em; }
+    .modal__close { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-sm); color: var(--color-text-muted); background: none; border: none; cursor: pointer; transition: all .15s; }
+    .modal__close:hover { background: var(--color-bg-hover); color: var(--color-text-primary); }
+    .modal__body { padding: 14px 22px; display: flex; flex-direction: column; gap: 7px; max-height: 320px; overflow-y: auto; }
+    .modal__footer { padding: 14px 22px; border-top: 1px solid var(--color-border-subtle); display: flex; justify-content: flex-end; }
+    .format-group-heading { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-text-muted); margin-top: 6px; }
+    .format-option { display: flex; align-items: center; gap: 14px; padding: 10px 14px; background: var(--color-bg-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; transition: all .15s; }
+    .format-option:hover { background: var(--color-bg-hover); }
+    .format-option[aria-selected="true"] { background: var(--color-accent-dim); border-color: var(--color-accent); }
+    .format-option__left { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .format-option__name { font-size: 14px; font-weight: 600; }
+    .format-option__meta { display: flex; gap: 7px; align-items: center; }
+    .format-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--color-border); display: flex; align-items: center; justify-content: center; transition: all .15s; color: transparent; flex-shrink: 0; }
+    .format-option[aria-selected="true"] .format-check { background: var(--color-accent); border-color: var(--color-accent); color: #001824; }
+
+    /* SITE SECTIONS */
+    .section { padding: 100px 24px; max-width: 1080px; margin: 0 auto; }
+    .section-label { font-family: var(--font-mono); font-size: 11px; color: var(--color-accent); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 14px; background: linear-gradient(90deg, var(--color-accent), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .section-title { font-family: var(--font-brand); font-size: clamp(30px,4vw,46px); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; margin-bottom: 14px; }
+    .section-sub { font-size: 17px; color: var(--color-text-secondary); max-width: 520px; line-height: 1.7; margin-bottom: 56px; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--color-border); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+    .feature-card { background: var(--color-bg-base); padding: 34px 28px; transition: all .3s ease; position: relative; }
+    .feature-card::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 20%, rgba(59,173,255,.04), transparent 60%); opacity: 0; transition: opacity .3s; }
+    .feature-card:hover { background: var(--color-bg-surface); }
+    .feature-card:hover::after { opacity: 1; }
+    .feature-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; transition: transform .3s, box-shadow .3s; }
+    .feature-card:hover .feature-icon { transform: translateY(-2px) scale(1.05); }
+    .fi-blue { background: var(--color-accent-dim); color: var(--color-accent); }
+    .fi-blue:hover, .feature-card:hover .fi-blue { box-shadow: 0 4px 15px rgba(59,173,255,.2); }
+    .fi-green { background: var(--color-success-dim); color: var(--color-success); }
+    .fi-green:hover, .feature-card:hover .fi-green { box-shadow: 0 4px 15px rgba(61,214,140,.2); }
+    .fi-amber { background: var(--color-warning-dim); color: var(--color-warning); }
+    .fi-amber:hover, .feature-card:hover .fi-amber { box-shadow: 0 4px 15px rgba(240,180,41,.2); }
+    .fi-purple { background: rgba(167,139,250,.12); color: #a78bfa; }
+    .fi-purple:hover, .feature-card:hover .fi-purple { box-shadow: 0 4px 15px rgba(167,139,250,.2); }
+    .feature-card h3 { font-size: 16px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 9px; transition: color .2s; }
+    .feature-card:hover h3 { color: var(--color-accent); }
+    .feature-card p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.7; }
+    .format-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+    .fmt-card { background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px; transition: all .3s ease; position: relative; overflow: hidden; }
+    .fmt-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--color-accent), transparent); opacity: 0; transition: opacity .3s; }
+    .fmt-card:hover { border-color: rgba(59,173,255,.2); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,.3); }
+    .fmt-card:hover::before { opacity: 1; }
+    .fmt-card h4 { font-family: var(--font-mono); font-size: 10px; color: var(--color-text-muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+    .fmt-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .fmt-tag { font-family: var(--font-mono); font-size: 11px; padding: 4px 10px; background: var(--color-bg-elevated); border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-text-secondary); transition: all .2s; cursor: default; }
+    .fmt-tag:hover { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-dim); transform: translateY(-1px); }
+    .compare-tbl { width: 100%; border-collapse: collapse; border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+    .compare-tbl th { padding: 14px 18px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: var(--color-bg-surface); border-bottom: 1px solid var(--color-border); text-align: left; }
+    .compare-tbl th.hi { color: var(--color-accent); background: var(--color-accent-dim); }
+    .compare-tbl td { padding: 12px 18px; font-size: 12px; color: var(--color-text-secondary); border-bottom: 1px solid var(--color-border); font-family: var(--font-mono); }
+    .compare-tbl tr:last-child td { border-bottom: none; }
+    .compare-tbl td:first-child { color: var(--color-text-primary); font-family: var(--font-ui); font-weight: 500; font-size: 13px; }
+    .compare-tbl td.hi { background: rgba(59,173,255,.04); }
+    .tick { color: var(--color-success); font-size: 15px; } .cross { color: var(--color-text-muted); font-size: 15px; } .paid { color: var(--color-warning); font-size: 11px; }
+    .compare-tbl tr { transition: background .2s; }
+    .compare-tbl tbody tr:hover { background: rgba(59,173,255,.03); }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 22px; counter-reset: step-counter; }
+    .step { counter-increment: step-counter; position: relative; padding: 24px 20px; border-radius: var(--radius-lg); transition: all .3s; }
+    .step:hover { background: rgba(59,173,255,.03); }
+    .step-num { font-family: var(--font-mono); font-size: 11px; color: var(--color-accent); letter-spacing: .1em; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+    .step-num::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--color-border), transparent); }
+    .steps .step:last-child .step-num::after { display: none; }
+    .step h3 { font-size: 17px; font-weight: 700; margin-bottom: 9px; letter-spacing: -.01em; transition: color .2s; }
+    .step:hover h3 { color: var(--color-accent); }
+    .step p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.7; }
+    .dl-section { padding: 100px 24px; text-align: center; position: relative; overflow: hidden; }
+    .dl-section::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 800px; height: 400px; background: radial-gradient(ellipse, rgba(59,173,255,.06) 0%, transparent 70%); pointer-events: none; }
+    .dl-inner { max-width: 680px; margin: 0 auto; }
+    .dl-inner h2 { font-family: var(--font-brand); font-size: clamp(34px,5vw,58px); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 18px; }
+    .dl-inner p { font-size: 17px; color: var(--color-text-secondary); margin-bottom: 44px; line-height: 1.7; }
+    .platform-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .platform-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; background: rgba(255,255,255,.03); border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-primary); text-decoration: none; font-size: 14px; font-weight: 600; transition: all .3s; backdrop-filter: blur(4px); position: relative; overflow: hidden; }
+    .platform-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(59,173,255,.1), transparent); opacity: 0; transition: opacity .3s; }
+    .platform-btn:hover { border-color: var(--color-accent); color: var(--color-accent); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(59,173,255,.15); }
+    .platform-btn:hover::before { opacity: 1; }
+    .dl-note { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); }
+    .dl-note a { color: var(--color-text-secondary); text-decoration: none; transition: color .2s; }
+    .dl-note a:hover { color: var(--color-accent); }
+    footer { position: relative; padding: 36px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+    footer::before { content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, var(--color-border), rgba(59,173,255,.3), var(--color-border), transparent); }
+    .footer-logo { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-text-secondary); text-decoration: none; transition: color .2s; }
+    .footer-logo:hover { color: var(--color-text-primary); }
+    .footer-logo svg { color: var(--color-accent); }
+    .footer-links { display: flex; gap: 22px; list-style: none; }
+    .footer-links a { font-size: 12px; color: var(--color-text-muted); text-decoration: none; transition: color .2s; position: relative; }
+    .footer-links a:hover { color: var(--color-text-secondary); }
+    .footer-copy { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); }
+    .footer-copy .heart { display: inline-block; color: #ff5f6d; animation: heartbeat 2s ease infinite; }
+    @keyframes heartbeat { 0%,100% { transform: scale(1); } 14% { transform: scale(1.15); } 28% { transform: scale(1); } 42% { transform: scale(1.1); } 56% { transform: scale(1); } }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shimmer { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }
+    @keyframes pulseDot { 0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(59,173,255,.4); } 50% { opacity:.7; box-shadow: 0 0 0 4px rgba(59,173,255,0); } }
+    @keyframes pulseGreen { 0%,100% { box-shadow: 0 0 0 0 rgba(61,214,140,.4); } 50% { box-shadow: 0 0 0 4px rgba(61,214,140,0); } }
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 860px) { :root { --sidebar-w: 180px; } .site-nav { padding: 0 20px; } .nav-links li:not(:last-child) { display: none; } }
+    @media (max-width: 640px) {
+      :root { --sidebar-w: 48px; }
+      .brand-name, .nav-btn span, .update-banner__label { display: none; }
+      .engine-update-banner { display: none !important; }
+      .sidebar__brand { padding: 0 8px 14px; justify-content: center; }
+      .brand-logo { justify-content: center; }
+      .nav-btn { justify-content: center; padding: 8px; }
+      .sidebar__nav, .sidebar__bottom { padding: 0 4px; }
+      .app-shell { height: 440px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- AMBIENT EFFECTS -->
+<div class="scroll-progress" id="scroll-progress"></div>
+<div class="cursor-glow" id="cursor-glow"></div>
+<div class="ambient-orb orb-1"></div>
+<div class="ambient-orb orb-2"></div>
+<div class="ambient-orb orb-3"></div>
+<div class="noise-overlay"></div>
+<canvas id="particles" style="position:fixed;inset:0;pointer-events:none;z-index:0;"></canvas>
+
+<nav class="site-nav">
+  <a href="#" class="nav-brand">
+    <img src="src/assets/pulldown.png" width="22" height="22" alt="PullDown logo" style="object-fit:contain;flex-shrink:0;" />
+    PullDown
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#formats">Formats</a></li>
+    <li><a href="#compare">Compare</a></li>
+    <li><a href="https://github.com/soumo-git/PullDown" target="_blank">GitHub</a></li>
+    <li><a href="#download" class="nav-dl">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v13M12 15l-5-5M12 15l5-5"/><path d="M3 20h18" stroke-linecap="round"/></svg>
+      Download
+    </a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge"><span class="hero-badge-dot"></span> v1.0 — free & open source</div>
+  <h1>Download anything.<br><span class="ac">Convert everything.</span></h1>
+  <p class="hero-sub">Free desktop app powered by yt-dlp + ffmpeg. Download from 1000+ sites at max quality. Convert any video to any format. Nothing leaves your machine.</p>
+  <div class="hero-btns">
+    <a href="#download" class="btn-primary">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v13M12 15l-5-5M12 15l5-5"/><path d="M3 20h18" stroke-linecap="round"/></svg>
+      Download Free
+    </a>
+    <a href="https://github.com/soumo-git/PullDown" target="_blank" class="btn-ghost">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+  </div>
+  <div class="hero-meta"><span>MIT License</span><span>·</span><span>Windows</span><span>·</span><span>macOS</span><span>·</span><span>Linux</span><span>·</span><span>No account required</span></div>
+</div>
+
+<!-- INTERACTIVE APP DEMO -->
+<div class="demo-wrap">
+  <div class="app-frame">
+    <div class="app-titlebar">
+      <div class="tbar-dot r"></div><div class="tbar-dot a"></div><div class="tbar-dot g"></div>
+      <span class="tbar-label">PULLDOWN</span>
+    </div>
+    <div class="app-shell">
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="sidebar__brand">
+          <div class="brand-logo">
+            <img src="src/assets/pulldown.png" class="brand-icon" alt="PullDown logo" draggable="false" />
+            <span class="brand-name">PullDown</span>
+          </div>
+        </div>
+        <nav class="sidebar__nav">
+          <ul class="nav-list">
+            <li><button class="nav-btn active" data-view="downloads">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2v13M12 15l-5-5M12 15l5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 20h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span>Downloads</span>
+            </button></li>
+            <li><button class="nav-btn" data-view="player">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M10 8.5l6 3.5-6 3.5V8.5z" fill="currentColor"/></svg>
+              <span>Player</span>
+            </button></li>
+            <li><button class="nav-btn" data-view="browse">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span>Browse</span>
+            </button></li>
+            <li><button class="nav-btn" data-view="library">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="6" height="16" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="11" y="4" width="6" height="16" rx="1" stroke="currentColor" stroke-width="1.8"/><path d="M19 4l2 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span>Library</span>
+            </button></li>
+          </ul>
+        </nav>
+        <div id="demo-update-banner" class="engine-update-banner" style="display:none;">
+          <div class="update-banner__label">yt-dlp 2026.03 available</div>
+          <button class="btn-update-engine" id="btn-update-engine">Update engine →</button>
+        </div>
+        <div class="sidebar__bottom">
+          <button class="nav-btn" data-view="settings">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>Settings</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- MAIN WRAPPER -->
+      <div class="main-wrapper">
+        <header class="topbar">
+          <div class="topbar__url-group">
+            <div class="url-input-wrap">
+              <svg class="url-icon" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <input id="demo-url" type="url" class="url-input" placeholder="Paste URL — YouTube · Vimeo · Twitter · Reddit..." autocomplete="off" spellcheck="false" />
+            </div>
+            <button id="demo-format-btn" class="btn btn--ghost" onclick="toggleDemoModal()">
+              <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span id="demo-format-label">Format</span>
+            </button>
+            <button id="demo-add-btn" class="btn btn--primary" disabled>
+              <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              Add
+            </button>
+          </div>
+        </header>
+
+        <!-- DOWNLOADS VIEW -->
+        <section id="demo-view-downloads" class="view view--active" style="display:flex;">
+          <div class="queue-header">
+            <div class="queue-header__left">
+              <h1 class="queue-title">Downloads</h1>
+              <div class="queue-tabs" role="tablist">
+                <button class="queue-tab is-active" role="tab" aria-selected="true" data-tab="queue">Queue</button>
+                <button class="queue-tab" role="tab" aria-selected="false" data-tab="downloaded">Downloaded</button>
+              </div>
+              <span id="demo-count" class="badge">2 items</span>
+              <span id="demo-active" class="badge badge--active">1 active</span>
+            </div>
+            <div class="queue-header__right">
+              <span id="demo-speed" class="speed-indicator">↓ 3.8 MB/s</span>
+            </div>
+          </div>
+          <div id="demo-queue-list" class="queue-list">
+            <!-- Card 1: completed -->
+            <article class="queue-card" id="card-1" data-status="completed">
+              <div class="card-thumb" style="background:#0d2e1c;" data-has-image="false">
+                <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 80 54" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d2e1c"/><stop offset="100%" stop-color="#041a0e"/></linearGradient></defs><rect width="80" height="54" fill="url(#g1)"/></svg>
+                <span class="card-thumb__play"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M5 3l14 9-14 9V3z" fill="white"/></svg></span>
+              </div>
+              <div class="card-body">
+                <div class="card-title">AI se Bhagwan ke Viral Video Kaise Banaye? 🚀 (A to Z Full Tutorial)</div>
+                <div class="card-chips">
+                  <span class="badge badge--complete">✓ Complete</span>
+                  <span class="badge badge--res">1440p</span>
+                  <span class="badge badge--codec">h264</span>
+                  <span class="badge badge--codec">aac</span>
+                  <span class="badge badge--platform mono">· 3:31 · YouTube</span>
+                </div>
+                <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill progress-fill--complete" style="width:100%;"></div></div></div>
+                <div class="card-status-row">
+                  <span class="card-status-text card-status-text--complete">D:\Yt-Download\AI se Bhagwan ke Viral... .mp4</span>
+                  <span class="card-pct mono">Done</span>
+                </div>
+              </div>
+              <div class="card-actions">
+                <button class="btn-icon btn-icon--success" title="Open in file manager"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
+                <button class="btn-icon btn-icon--danger" title="Remove" onclick="removeCard('card-1')"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+              </div>
+            </article>
+            <!-- Card 2: downloading -->
+            <article class="queue-card" id="card-2" data-status="downloading">
+              <div class="card-thumb" style="background:#0d1e2e;" data-has-image="false">
+                <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 80 54" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d1e2e"/><stop offset="100%" stop-color="#04101a"/></linearGradient></defs><rect width="80" height="54" fill="url(#g2)"/></svg>
+                <span class="card-thumb__play"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M5 3l14 9-14 9V3z" fill="white"/></svg></span>
+              </div>
+              <div class="card-body">
+                <div class="card-title">How to Build a Compiler from Scratch — Full Course (4K)</div>
+                <div class="card-chips">
+                  <span class="badge badge--res">2160p</span>
+                  <span class="badge badge--codec">VP9</span>
+                  <span class="badge badge--codec">aac 328k</span>
+                  <span class="badge badge--platform mono">· 22:07 · YouTube</span>
+                </div>
+                <div class="progress-wrap"><div class="progress-bar"><div id="c2-fill" class="progress-fill" data-active="true" style="width:31%;"></div></div></div>
+                <div class="card-status-row">
+                  <span id="c2-status" class="card-status-text mono">93.6 MB / 304.0 MB · downloading · ↓ 3.8 MB/s</span>
+                  <span id="c2-pct" class="card-pct mono">31%</span>
+                </div>
+              </div>
+              <div class="card-actions">
+                <button id="c2-pause" class="btn-icon" title="Pause" onclick="togglePause()"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/></svg></button>
+                <button class="btn-icon btn-icon--danger" title="Cancel" onclick="removeCard('card-2')"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- PLAYER VIEW -->
+        <section id="demo-view-player" class="view view--placeholder" style="display:none;">
+          <div class="placeholder-panel">
+            <svg viewBox="0 0 64 64" fill="none" width="64" height="64"><circle cx="32" cy="32" r="28" stroke="var(--color-border)" stroke-width="2"/><path d="M25 20l18 12-18 12V20z" fill="var(--color-accent)" opacity=".3"/></svg>
+            <h2 class="placeholder-title">Player</h2>
+            <p class="placeholder-desc">Your completed downloads will appear here for in-app playback.</p>
+          </div>
+        </section>
+        <!-- BROWSE VIEW -->
+        <section id="demo-view-browse" class="view view--placeholder" style="display:none;">
+          <div class="placeholder-panel">
+            <svg viewBox="0 0 64 64" fill="none" width="64" height="64"><circle cx="28" cy="28" r="18" stroke="var(--color-border)" stroke-width="2"/><path d="M42 42l10 10" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" opacity=".5"/></svg>
+            <h2 class="placeholder-title">Browse</h2>
+            <p class="placeholder-desc">Built-in browser for YouTube, Vimeo, Twitter &amp; more — coming soon.</p>
+          </div>
+        </section>
+        <!-- LIBRARY VIEW -->
+        <section id="demo-view-library" class="view view--placeholder" style="display:none;">
+          <div class="placeholder-panel">
+            <svg viewBox="0 0 64 64" fill="none" width="64" height="64"><rect x="8" y="8" width="20" height="48" rx="2" stroke="var(--color-border)" stroke-width="2"/><rect x="32" y="8" width="20" height="48" rx="2" stroke="var(--color-border)" stroke-width="2"/></svg>
+            <h2 class="placeholder-title">Library</h2>
+            <p class="placeholder-desc">All downloaded videos organized and ready — coming soon.</p>
+          </div>
+        </section>
+        <!-- SETTINGS VIEW -->
+        <section id="demo-view-settings" class="view" style="display:none;">
+          <div class="settings-panel">
+            <h1 class="settings-title">Settings</h1>
+            <div class="settings-section">
+              <h2 class="settings-section__title">Engine Management</h2>
+              <p class="settings-section__desc">yt-dlp and ffmpeg ship as swappable sidecars. Update independently without reinstalling PullDown.</p>
+              <div class="engine-cards">
+                <div class="engine-card">
+                  <div class="engine-card__header">
+                    <span class="engine-card__name mono">yt-dlp</span>
+                    <span class="status-dot status-dot--amber"></span>
+                  </div>
+                  <div class="engine-card__version mono">v2024.12.13</div>
+                  <div class="engine-card__latest mono">Latest: v2026.03.01</div>
+                  <button class="btn btn--primary btn--sm">Update yt-dlp</button>
+                </div>
+                <div class="engine-card">
+                  <div class="engine-card__header">
+                    <span class="engine-card__name mono">ffmpeg</span>
+                    <span class="status-dot status-dot--green"></span>
+                  </div>
+                  <div class="engine-card__version mono">v8.1-essentials</div>
+                  <div class="engine-card__latest mono">Latest: v8.1 ✓</div>
+                  <button class="btn btn--ghost btn--sm" disabled>Up to date</button>
+                </div>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h2 class="settings-section__title">About</h2>
+              <p class="settings-section__desc mono">PullDown v1.0.0 · Open-source · MIT License</p>
+              <p class="settings-section__desc">Built with Tauri + yt-dlp + ffmpeg. No trackers. No telemetry.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- STATUS BAR -->
+        <footer class="status-bar">
+          <div class="status-bar__left">
+            <span class="status-engine"><span class="status-dot status-dot--active"></span><span class="mono">yt-dlp 2024.12.13</span></span>
+            <span class="status-sep">·</span>
+            <span class="status-engine"><span class="status-dot status-dot--green"></span><span class="mono">ffmpeg 8.1-essentials</span></span>
+          </div>
+          <div class="status-bar__center"><span id="demo-status-label" class="mono">1 active download</span></div>
+          <div class="status-bar__right">
+            <span class="mono">D:\Yt-Download · 128 GB free</span>
+            <span id="demo-update-badge" class="status-update-badge" style="display:none;"><span class="status-dot status-dot--amber"></span>Update available</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <!-- FORMAT MODAL -->
+    <div id="demo-modal" class="modal-backdrop" onclick="if(event.target===this)toggleDemoModal()">
+      <div class="modal">
+        <div class="modal__header">
+          <span class="modal__title">Select Format</span>
+          <button class="modal__close" onclick="toggleDemoModal()"><svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        </div>
+        <div class="modal__body">
+          <div class="format-group-heading">Video + Audio</div>
+          <div class="format-option" aria-selected="false" tabindex="0" onclick="selectFormat(this,'V+A 4K')">
+            <div class="format-option__left"><span class="format-option__name">4K (2160p)</span><div class="format-option__meta"><span class="chip chip--res" style="font-size:10px;">VP9</span><span class="chip chip--codec" style="font-size:10px;">aac</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);">~2.1 GB</span></div></div>
+            <div class="format-check"><svg viewBox="0 0 12 12" fill="none" width="12" height="12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          </div>
+          <div class="format-option" aria-selected="true" tabindex="0" onclick="selectFormat(this,'V+A 1080p')">
+            <div class="format-option__left"><span class="format-option__name">1080p</span><div class="format-option__meta"><span class="chip chip--res" style="font-size:10px;">h264</span><span class="chip chip--codec" style="font-size:10px;">aac</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);">~480 MB</span></div></div>
+            <div class="format-check"><svg viewBox="0 0 12 12" fill="none" width="12" height="12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          </div>
+          <div class="format-option" aria-selected="false" tabindex="0" onclick="selectFormat(this,'V+A 720p')">
+            <div class="format-option__left"><span class="format-option__name">720p</span><div class="format-option__meta"><span class="chip chip--res" style="font-size:10px;">h264</span><span class="chip chip--codec" style="font-size:10px;">aac</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);">~220 MB</span></div></div>
+            <div class="format-check"><svg viewBox="0 0 12 12" fill="none" width="12" height="12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          </div>
+          <div class="format-group-heading">Audio only</div>
+          <div class="format-option" aria-selected="false" tabindex="0" onclick="selectFormat(this,'Audio MP3')">
+            <div class="format-option__left"><span class="format-option__name">MP3 320k</span><div class="format-option__meta"><span class="chip chip--codec" style="font-size:10px;">mp3</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);">~18 MB</span></div></div>
+            <div class="format-check"><svg viewBox="0 0 12 12" fill="none" width="12" height="12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          </div>
+          <div class="format-option" aria-selected="false" tabindex="0" onclick="selectFormat(this,'Audio FLAC')">
+            <div class="format-option__left"><span class="format-option__name">FLAC (lossless)</span><div class="format-option__meta"><span class="chip chip--codec" style="font-size:10px;">flac</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);">~42 MB</span></div></div>
+            <div class="format-check"><svg viewBox="0 0 12 12" fill="none" width="12" height="12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="app-btn app-btn--primary" onclick="toggleDemoModal()">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="reveal">
+    <div class="section-label">// features</div>
+    <h2 class="section-title">Everything you need.<br>Nothing you don't.</h2>
+    <p class="section-sub">Built on the most battle-tested download and conversion engines available. Just with an interface that doesn't suck.</p>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feature-card"><div class="feature-icon fi-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v13M12 15l-5-5M12 15l5-5"/><path d="M3 20h18" stroke-linecap="round"/></svg></div><h3>Full Quality Downloads</h3><p>4K, 8K, VP9, AV1, H.265 — no artificial caps. Video and audio fetched separately and muxed via ffmpeg for maximum quality.</p></div>
+    <div class="feature-card"><div class="feature-icon fi-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></div><h3>Video Converter</h3><p>Convert any local file between any format. mp4, mkv, mp3, flac, gif — if ffmpeg supports it, PullDown can do it. 100% offline.</p></div>
+    <div class="feature-card"><div class="feature-icon fi-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><h3>In-App Browser</h3><p>Browse YouTube, Vimeo, or any platform inside the app. A "Download This" button appears on any video page — one click to queue it.</p></div>
+    <div class="feature-card"><div class="feature-icon fi-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><h3>Swappable Engines</h3><p>yt-dlp and ffmpeg ship as replaceable sidecars. When updates drop, you're notified — you stay in control, no silent replacements.</p></div>
+    <div class="feature-card"><div class="feature-icon fi-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><h3>Parallel Queue</h3><p>Download multiple videos simultaneously. Pause, resume, or cancel individual items without affecting the rest of the queue.</p></div>
+    <div class="feature-card"><div class="feature-icon fi-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>Private by Design</h3><p>No telemetry, no analytics, no cloud. Everything runs locally. Open source — read every line of code yourself on GitHub.</p></div>
+  </div>
+</section>
+
+<!-- FORMATS -->
+<section class="section" id="formats" style="padding-top:0;">
+  <div class="reveal">
+    <div class="section-label">// supported formats</div>
+    <h2 class="section-title">Every format.<br>One app.</h2>
+    <p class="section-sub">PullDown exposes ffmpeg's full format support. No artificial limits.</p>
+  </div>
+  <div class="format-grid reveal">
+    <div class="fmt-card"><h4>Video Containers</h4><div class="fmt-tags"><span class="fmt-tag">mp4</span><span class="fmt-tag">mkv</span><span class="fmt-tag">avi</span><span class="fmt-tag">mov</span><span class="fmt-tag">webm</span><span class="fmt-tag">flv</span><span class="fmt-tag">ts</span><span class="fmt-tag">m4v</span></div></div>
+    <div class="fmt-card"><h4>Video Codecs</h4><div class="fmt-tags"><span class="fmt-tag">H.264</span><span class="fmt-tag">H.265</span><span class="fmt-tag">AV1</span><span class="fmt-tag">VP9</span><span class="fmt-tag">VP8</span><span class="fmt-tag">HEVC</span></div></div>
+    <div class="fmt-card"><h4>Audio</h4><div class="fmt-tags"><span class="fmt-tag">mp3</span><span class="fmt-tag">aac</span><span class="fmt-tag">flac</span><span class="fmt-tag">opus</span><span class="fmt-tag">wav</span><span class="fmt-tag">ogg</span><span class="fmt-tag">m4a</span></div></div>
+    <div class="fmt-card"><h4>Image / Other</h4><div class="fmt-tags"><span class="fmt-tag">gif</span><span class="fmt-tag">webp</span><span class="fmt-tag">apng</span><span class="fmt-tag">.srt</span><span class="fmt-tag">.ass</span></div></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section">
+  <div class="reveal">
+    <div class="section-label">// how it works</div>
+    <h2 class="section-title">Three steps.</h2>
+    <p class="section-sub">From URL to file on your drive.</p>
+  </div>
+  <div class="steps reveal">
+    <div class="step"><div class="step-num">01 ————</div><h3>Paste a URL</h3><p>Drop a link from YouTube, Vimeo, Twitter, Reddit, or 1000+ other platforms into the URL bar.</p></div>
+    <div class="step"><div class="step-num">02 ————</div><h3>Pick your format</h3><p>Choose resolution, codec, and audio quality. Or let PullDown pick the best available automatically.</p></div>
+    <div class="step"><div class="step-num">03 ————</div><h3>Done</h3><p>yt-dlp fetches the streams. ffmpeg muxes them. The file lands exactly where you want it.</p></div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section class="section" id="compare" style="padding-top:0;">
+  <div class="reveal">
+    <div class="section-label">// vs alternatives</div>
+    <h2 class="section-title">Why PullDown?</h2>
+    <p class="section-sub">Every other option is either paid, abandoned, or quietly terrible.</p>
+  </div>
+  <div class="reveal" style="overflow-x:auto;">
+    <table class="compare-tbl">
+      <thead><tr><th>App</th><th class="hi">PullDown</th><th>4K Video Downloader</th><th>yt-dlp.app</th><th>ytDownloader</th></tr></thead>
+      <tbody>
+        <tr><td>Free forever</td><td class="hi"><span class="tick">✓</span></td><td><span class="paid">Freemium</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>Open source</td><td class="hi"><span class="tick">✓</span></td><td><span class="cross">✗</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>4K+ quality</td><td class="hi"><span class="tick">✓</span></td><td><span class="paid">Paid</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>Video converter</td><td class="hi"><span class="tick">✓</span></td><td><span class="cross">✗</span></td><td><span class="cross">✗</span></td><td><span class="cross">✗</span></td></tr>
+        <tr><td>In-app browser</td><td class="hi"><span class="tick">✓</span></td><td><span class="cross">✗</span></td><td><span class="cross">✗</span></td><td><span class="cross">✗</span></td></tr>
+        <tr><td>Engine updates</td><td class="hi"><span class="tick">✓</span></td><td><span class="cross">✗</span></td><td><span class="tick">✓</span></td><td><span class="cross">✗</span></td></tr>
+        <tr><td>No telemetry</td><td class="hi"><span class="tick">✓</span></td><td><span class="cross">✗</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<div class="dl-section" id="download">
+  <div class="dl-inner reveal">
+    <h2>Ready to pull<br><span style="color:var(--color-accent)">everything down?</span></h2>
+    <p>Free. Open source. No account. No subscription. Just pick your platform and go.</p>
+    <div class="platform-btns">
+      <!-- Windows — Simple Icons "windows" SVG path -->
+      <a href="https://github.com/soumo-git/PullDown/releases/latest" class="platform-btn" target="_blank">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.851"/></svg>
+        Windows
+      </a>
+      <!-- macOS — Simple Icons "apple" SVG path -->
+      <a href="https://github.com/soumo-git/PullDown/releases/latest" class="platform-btn" target="_blank">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>
+        macOS
+      </a>
+      <!-- Linux — Simple Icons "linux" (Tux) SVG path -->
+      <a href="https://github.com/soumo-git/PullDown/releases/latest" class="platform-btn" target="_blank">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z"/></svg>
+        Linux
+      </a>
+    </div>
+    <p class="dl-note">or · <a href="https://github.com/soumo-git/PullDown" target="_blank">build from source on GitHub</a></p>
+  </div>
+</div>
+
+<footer>
+  <a href="#" class="footer-logo"><img src="src/assets/pulldown.png" width="18" height="18" alt="PullDown logo" style="object-fit:contain;flex-shrink:0;" />PullDown</a>
+  <ul class="footer-links">
+    <li><a href="https://github.com/soumo-git/PullDown" target="_blank">GitHub</a></li>
+    <li><a href="https://github.com/soumo-git/PullDown/releases" target="_blank">Releases</a></li>
+    <li><a href="https://github.com/soumo-git/PullDown/issues" target="_blank">Report Issue</a></li>
+    <li><a href="https://github.com/soumo-git/PullDown/blob/main/LICENSE" target="_blank">MIT License</a></li>
+  </ul>
+  <span class="footer-copy">© 2026 Soumo Mukherjee · Made with <span class="heart">♥</span> · yt-dlp + ffmpeg + Tauri</span>
+</footer>
+
+<script>
+  // URL validation
+  const demoUrl = document.getElementById('demo-url');
+  const addBtn  = document.getElementById('demo-add-btn');
+  function isUrl(s) { try { const u = new URL(s.trim()); return u.protocol.startsWith('http'); } catch { return false; } }
+  demoUrl.addEventListener('input', () => { addBtn.disabled = !isUrl(demoUrl.value); });
+  demoUrl.addEventListener('paste', () => setTimeout(() => { addBtn.disabled = !isUrl(demoUrl.value); }, 0));
+  demoUrl.addEventListener('keydown', e => { if (e.key === 'Enter' && !addBtn.disabled) addDemoItem(); });
+  addBtn.addEventListener('click', addDemoItem);
+
+  // Add demo item
+  let cardId = 10;
+  const CARD_COLORS = ['#0d1e2e','#0d2e1c','#2a1a0d','#1a0d2e','#0d2a2a'];
+  function addDemoItem() {
+    const url = demoUrl.value.trim();
+    if (!isUrl(url)) return;
+    cardId++;
+    const id = 'card-' + cardId;
+    const host = (() => { try { return new URL(url).hostname.replace('www.',''); } catch { return 'Web'; } })();
+    const platform = host.includes('youtu') ? 'YouTube' : host.includes('vimeo') ? 'Vimeo' : host.includes('twitter') || host.includes('x.com') ? 'Twitter' : 'Web';
+    const bg = CARD_COLORS[cardId % CARD_COLORS.length];
+    const card = document.createElement('article');
+    card.className = 'queue-card'; card.id = id; card.dataset.status = 'queued';
+    card.style.cssText = 'opacity:0;transform:translateY(10px);transition:opacity .25s,transform .25s;';
+    card.innerHTML = `
+      <div class="card-thumb" style="background:${bg};" data-has-image="false"><svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 80 54"><rect width="80" height="54" fill="${bg}"/></svg><span class="card-thumb__play"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M5 3l14 9-14 9V3z" fill="white"/></svg></span></div>
+      <div class="card-body">
+        <div class="card-title" title="${url}">Preparing download... — ${host}</div>
+        <div class="card-chips"><span class="badge badge--platform mono">· ${platform}</span></div>
+        <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" id="${id}-fill" style="width:0%;"></div></div></div>
+        <div class="card-status-row"><span class="card-status-text mono" id="${id}-status">Queued</span><span class="card-pct mono" id="${id}-pct">0%</span></div>
+      </div>
+      <div class="card-actions"><button class="btn-icon btn-icon--danger" title="Cancel" onclick="removeCard('${id}')"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>`;
+    document.getElementById('demo-queue-list').appendChild(card);
+    requestAnimationFrame(() => { card.style.opacity = '1'; card.style.transform = ''; });
+    demoUrl.value = ''; addBtn.disabled = true;
+    updateHeader();
+  }
+
+  // Remove card
+  function removeCard(id) {
+    const c = document.getElementById(id);
+    if (!c) return;
+    c.style.cssText += 'opacity:0;transform:translateX(20px);transition:opacity .2s,transform .2s;';
+    setTimeout(() => { c.remove(); updateHeader(); }, 220);
+  }
+
+  // Nav switching
+  const VIEWS = ['downloads','player','browse','library','settings'];
+  function showView(view) {
+    VIEWS.forEach(v => {
+      const el = document.getElementById('demo-view-' + v);
+      if (el) el.style.display = v === view ? 'flex' : 'none';
+    });
+  }
+  document.querySelectorAll('.app-shell .nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.app-shell .nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      showView(btn.dataset.view);
+    });
+  });
+
+  // Update engine banner → settings
+  document.getElementById('btn-update-engine').addEventListener('click', () => {
+    document.querySelectorAll('.app-shell .nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.app-shell [data-view="settings"]').classList.add('active');
+    showView('settings');
+  });
+
+  // Format modal
+  function toggleDemoModal() {
+    const m = document.getElementById('demo-modal');
+    m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+  }
+  function selectFormat(el, label) {
+    document.querySelectorAll('#demo-modal .format-option').forEach(o => o.setAttribute('aria-selected','false'));
+    el.setAttribute('aria-selected','true');
+    document.getElementById('demo-format-label').textContent = label;
+    setTimeout(toggleDemoModal, 180);
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { const m = document.getElementById('demo-modal'); if (m.style.display === 'flex') toggleDemoModal(); } });
+
+  // Pause toggle
+  function togglePause() {
+    const card = document.getElementById('card-2');
+    if (!card) return;
+    const btn = document.getElementById('c2-pause');
+    const fill = document.getElementById('c2-fill');
+    const status = document.getElementById('c2-status');
+    const isPaused = card.dataset.status === 'paused';
+    if (isPaused) {
+      card.dataset.status = 'downloading';
+      fill.setAttribute('data-active', 'true');
+      status.textContent = 'Resuming...';
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" width="14" height="14"><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/></svg>`;
+    } else {
+      card.dataset.status = 'paused';
+      fill.removeAttribute('data-active');
+      const pct = parseInt(fill.style.width || '0');
+      const done = ((pct / 100) * 304).toFixed(1);
+      status.textContent = `${done} MB / 304.0 MB · Paused`;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M5 3l14 9-14 9V3z" fill="currentColor"/></svg>`;
+    }
+    updateHeader();
+  }
+
+  // Queue tabs
+  document.querySelectorAll('.queue-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.queue-tab').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('#demo-queue-list .queue-card').forEach(c => {
+        c.style.display = tab === 'downloaded' ? (c.dataset.status === 'completed' ? '' : 'none') : (c.dataset.status === 'completed' ? 'none' : '');
+      });
+    });
+  });
+
+  // Header sync
+  function updateHeader() {
+    const cards = document.querySelectorAll('#demo-queue-list .queue-card');
+    const total = cards.length;
+    const active = [...cards].filter(c => c.dataset.status === 'downloading').length;
+    document.getElementById('demo-count').textContent = `${total} item${total === 1 ? '' : 's'}`;
+    const activeEl = document.getElementById('demo-active');
+    activeEl.textContent = active > 0 ? `${active} active` : '';
+    activeEl.style.display = active > 0 ? '' : 'none';
+    document.getElementById('demo-speed').textContent = active > 0 ? '↓ 3.8 MB/s' : '';
+    document.getElementById('demo-status-label').textContent = active > 0 ? `${active} active download${active > 1 ? 's' : ''}` : total > 0 ? `${total} item${total > 1 ? 's' : ''} in queue` : 'Ready';
+  }
+
+  // Live progress
+  let simPct = 31;
+  setInterval(() => {
+    const card = document.getElementById('card-2');
+    if (!card || card.dataset.status === 'paused' || card.dataset.status === 'completed') return;
+    if (simPct >= 100) {
+      card.dataset.status = 'completed';
+      card.style.borderColor = 'rgba(61,214,140,.2)';
+      const fill = document.getElementById('c2-fill');
+      fill.removeAttribute('data-active'); fill.classList.add('progress-fill--complete'); fill.style.width = '100%';
+      const status = document.getElementById('c2-status');
+      status.className = 'card-status-text card-status-text--complete'; status.textContent = 'D:\\Yt-Download\\How to Build a Compiler.mp4';
+      document.getElementById('c2-pct').textContent = 'Done';
+      card.querySelector('.card-actions').innerHTML = `
+        <button class="btn-icon btn-icon--success" title="Open in file manager"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
+        <button class="btn-icon btn-icon--danger" title="Remove" onclick="removeCard('card-2')"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`;
+      updateHeader(); return;
+    }
+    simPct = Math.min(100, simPct + 0.3);
+    const fill = document.getElementById('c2-fill');
+    if (fill) fill.style.width = simPct + '%';
+    const done = ((simPct / 100) * 304).toFixed(1);
+    document.getElementById('c2-status').textContent = `${done} MB / 304.0 MB · downloading · ↓ 3.8 MB/s`;
+    document.getElementById('c2-pct').textContent = Math.round(simPct) + '%';
+  }, 160);
+
+  // Scroll reveal with stagger
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => { if (e.isIntersecting) { setTimeout(() => e.target.classList.add('in'), i * 100); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  reveals.forEach(el => io.observe(el));
+
+  // Nav highlight + scroll progress + nav class
+  const siteNav = document.querySelector('.site-nav');
+  const scrollProg = document.getElementById('scroll-progress');
+  const sectionEls = document.querySelectorAll('[id]');
+  const navAs = document.querySelectorAll('.site-nav a[href^="#"]');
+  window.addEventListener('scroll', () => {
+    // Scroll progress
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docH > 0 ? (window.scrollY / docH) * 100 : 0;
+    scrollProg.style.width = pct + '%';
+    // Nav scroll class
+    siteNav.classList.toggle('scrolled', window.scrollY > 40);
+    // Active nav link
+    let cur = '';
+    sectionEls.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id; });
+    navAs.forEach(a => { a.style.color = a.getAttribute('href') === '#' + cur ? 'var(--color-text-primary)' : ''; });
+  }, { passive: true });
+
+  // Cursor glow (desktop only)
+  const glow = document.getElementById('cursor-glow');
+  if (window.matchMedia('(pointer: fine)').matches) {
+    document.addEventListener('mousemove', e => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+    }, { passive: true });
+  } else { glow.style.display = 'none'; }
+
+  // Particle system — subtle floating dots
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  // Create particles
+  for (let i = 0; i < 40; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5 + 0.5,
+      dx: (Math.random() - 0.5) * 0.3,
+      dy: (Math.random() - 0.5) * 0.3,
+      o: Math.random() * 0.3 + 0.1
+    });
+  }
+  function drawParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(59,173,255,${p.o})`;
+      ctx.fill();
+      p.x += p.dx; p.y += p.dy;
+      // Wrap around edges
+      if (p.x < 0) p.x = canvas.width;
+      if (p.x > canvas.width) p.x = 0;
+      if (p.y < 0) p.y = canvas.height;
+      if (p.y > canvas.height) p.y = 0;
+    });
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+
+  // Show engine update banner after delay (adds life to demo)
+  setTimeout(() => {
+    const banner = document.getElementById('demo-update-banner');
+    const badge = document.getElementById('demo-update-badge');
+    if (banner) { banner.style.display = ''; banner.style.animation = 'fadeUp .3s ease'; }
+    if (badge) { badge.style.display = ''; badge.style.animation = 'fadeUp .3s ease'; }
+  }, 3500);
+</script>
+</body>
+</html>
