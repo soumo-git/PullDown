@@ -1,5 +1,6 @@
+use std::env;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 
 use crate::core::errors::{AppError, AppResult};
 
@@ -79,6 +80,84 @@ pub fn play_media(target: &Path, custom_ffmpeg_path: Option<&str>) -> AppResult<
     open_media_with_default_app(target)
 }
 
+pub fn play_with_libvlc(
+    source: &str,
+    is_url: bool,
+    preferred_vlc_path: Option<&Path>,
+) -> AppResult<Child> {
+    let trimmed = source.trim();
+    if trimmed.is_empty() {
+        return Err(AppError::Message(
+            "Playback source cannot be empty".to_string(),
+        ));
+    }
+
+    let source_arg = if is_url {
+        trimmed.to_string()
+    } else {
+        let target = PathBuf::from(trimmed);
+        if !target.exists() {
+            return Err(AppError::Message(format!(
+                "Media file does not exist: {}",
+                target.display()
+            )));
+        }
+        if !target.is_file() {
+            return Err(AppError::Message(format!(
+                "Media target is not a file: {}",
+                target.display()
+            )));
+        }
+        target.to_string_lossy().to_string()
+    };
+
+    let mut last_error: Option<String> = None;
+    for candidate in vlc_command_candidates(preferred_vlc_path) {
+        let mut command = if let Some(path) = candidate.as_ref() {
+            Command::new(path)
+        } else {
+            Command::new("vlc")
+        };
+
+        command
+            .arg("--no-video-title-show")
+            .arg("--no-qt-privacy-ask")
+            .arg("--no-qt-error-dialogs")
+            .arg("--qt-start-minimized")
+            .arg(&source_arg)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null());
+
+        match command.spawn() {
+            Ok(child) => return Ok(child),
+            Err(err) => {
+                last_error = Some(format!(
+                    "{} ({})",
+                    candidate
+                        .as_ref()
+                        .map(|path| path.display().to_string())
+                        .unwrap_or_else(|| "vlc".to_string()),
+                    err
+                ));
+            }
+        }
+    }
+
+    Err(AppError::Process(format!(
+        "Unable to start libVLC player. {}",
+        last_error.unwrap_or_else(|| "No VLC executable candidate was available".to_string())
+    )))
+}
+
+pub fn stop_spawned_player(child: Option<&mut Child>) -> AppResult<()> {
+    if let Some(process) = child {
+        let _ = process.kill();
+        let _ = process.wait();
+    }
+    Ok(())
+}
+
 fn resolve_open_target(target: &Path, fallback_dir: &Path) -> AppResult<PathBuf> {
     if target.exists() {
         return Ok(target.to_path_buf());
@@ -98,6 +177,97 @@ fn resolve_open_target(target: &Path, fallback_dir: &Path) -> AppResult<PathBuf>
         "Path does not exist: {}",
         target.display()
     )))
+}
+
+fn vlc_command_candidates(preferred_vlc_path: Option<&Path>) -> Vec<Option<PathBuf>> {
+    let mut candidates: Vec<Option<PathBuf>> = Vec::new();
+
+    if let Some(path) = preferred_vlc_path {
+        if path.exists() {
+            candidates.push(Some(path.to_path_buf()));
+        }
+    }
+
+    if let Ok(current_exe) = env::current_exe() {
+        if let Some(exe_dir) = current_exe.parent() {
+            #[cfg(target_os = "windows")]
+            {
+                let direct = exe_dir.join("vlc.exe");
+                if direct.exists() {
+                    candidates.push(Some(direct));
+                }
+                let nested = exe_dir.join("vlc").join("vlc.exe");
+                if nested.exists() {
+                    candidates.push(Some(nested));
+                }
+            }
+
+            #[cfg(target_os = "macos")]
+            {
+                let macos_bin = exe_dir.join("vlc");
+                if macos_bin.exists() {
+                    candidates.push(Some(macos_bin));
+                }
+            }
+
+            #[cfg(all(unix, not(target_os = "macos")))]
+            {
+                let linux_bin = exe_dir.join("vlc");
+                if linux_bin.exists() {
+                    candidates.push(Some(linux_bin));
+                }
+            }
+        }
+    }
+
+    if let Ok(raw) = env::var("PULLDOWN_VLC_PATH") {
+        let path = PathBuf::from(raw.trim());
+        if path.exists() {
+            candidates.push(Some(path));
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        if let Ok(program_files) = env::var("ProgramFiles") {
+            let path = PathBuf::from(program_files)
+                .join("VideoLAN")
+                .join("VLC")
+                .join("vlc.exe");
+            if path.exists() {
+                candidates.push(Some(path));
+            }
+        }
+        if let Ok(program_files_x86) = env::var("ProgramFiles(x86)") {
+            let path = PathBuf::from(program_files_x86)
+                .join("VideoLAN")
+                .join("VLC")
+                .join("vlc.exe");
+            if path.exists() {
+                candidates.push(Some(path));
+            }
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let app_bundle = PathBuf::from("/Applications/VLC.app/Contents/MacOS/VLC");
+        if app_bundle.exists() {
+            candidates.push(Some(app_bundle));
+        }
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        let linux_path = PathBuf::from("/usr/bin/vlc");
+        if linux_path.exists() {
+            candidates.push(Some(linux_path));
+        }
+    }
+
+    // Final fallback: resolve through PATH.
+    candidates.push(None);
+    candidates
 }
 
 #[cfg(target_os = "windows")]
@@ -171,12 +341,8 @@ fn open_media_with_default_app(target: &Path) -> AppResult<()> {
 
 #[cfg(target_os = "windows")]
 fn open_media_with_default_app_windows(target: &Path) -> AppResult<()> {
-    let quoted_path = format!("\"{}\"", target.to_string_lossy().replace('"', "\"\""));
-    Command::new("cmd")
-        .arg("/C")
-        .arg("start")
-        .arg("")
-        .arg(quoted_path)
+    Command::new("explorer")
+        .arg(target)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())

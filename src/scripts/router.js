@@ -13,6 +13,14 @@ const VIEW_IDS = ['downloads', 'player', 'browse', 'library', 'settings'];
  * @param {string} viewId
  */
 function showView(viewId) {
+  const activeElement = document.activeElement;
+  if (activeElement instanceof HTMLElement) {
+    const owningView = activeElement.closest('.view');
+    if (owningView && owningView.id !== `view-${viewId}`) {
+      activeElement.blur();
+    }
+  }
+
   VIEW_IDS.forEach(id => {
     const el = document.getElementById(`view-${id}`);
     if (!el) return;

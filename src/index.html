@@ -177,7 +177,7 @@
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="14" height="14">
                   <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
-                Add
+                <span id="btn-add-label">Add</span>
               </button>
             </div>
           </header>
@@ -216,15 +216,9 @@
               <div class="queue-header__right">
                 <span id="speed-indicator" class="speed-indicator" aria-live="polite"></span>
                 <div id="downloaded-scan-controls" class="scan-controls" style="display:none;">
-                  <button id="btn-scan-start" class="btn btn--ghost btn--sm" aria-label="Start downloaded media scan">
-                    Start Scan
-                  </button>
-                  <button id="btn-scan-pause" class="btn btn--ghost btn--sm" aria-label="Pause or resume downloaded media scan" disabled>
-                    Pause
-                  </button>
-                  <button id="btn-scan-stop" class="btn btn--ghost btn--sm" aria-label="Stop downloaded media scan" disabled>
-                    Stop
-                  </button>
+                  <button id="btn-scan-start" class="btn-icon" aria-label="Start downloaded media scan" title="Start scan"></button>
+                  <button id="btn-scan-pause" class="btn-icon" aria-label="Pause or resume downloaded media scan" title="Pause scan" disabled></button>
+                  <button id="btn-scan-stop" class="btn-icon btn-icon--danger" aria-label="Stop downloaded media scan" title="Stop scan" disabled></button>
                 </div>
               </div>
             </div>
@@ -247,14 +241,28 @@
           </section>
 
           <!-- PLAYER VIEW -->
-          <section id="view-player" class="view view--placeholder" style="display:none;" aria-label="Player">
-            <div class="placeholder-panel">
-              <svg viewBox="0 0 64 64" fill="none" width="64" height="64" aria-hidden="true">
-                <circle cx="32" cy="32" r="28" stroke="var(--color-border)" stroke-width="2"/>
-                <path d="M25 20l18 12-18 12V20z" fill="var(--color-accent)" opacity=".3"/>
-              </svg>
-              <h2 class="placeholder-title">Player</h2>
-              <p class="placeholder-desc">Your completed downloads will appear here for in-app playback.</p>
+          <section id="view-player" class="view" style="display:none;" aria-label="Player">
+            <div class="player-view">
+              <div class="player-shell">
+                <video id="player-video" class="player-media" controls preload="metadata" style="display:none;"></video>
+                <audio id="player-audio" class="player-audio" controls preload="metadata" style="display:none;"></audio>
+                <div id="player-empty" class="player-empty">
+                  <svg viewBox="0 0 64 64" fill="none" width="64" height="64" aria-hidden="true">
+                    <circle cx="32" cy="32" r="28" stroke="var(--color-border)" stroke-width="2"/>
+                    <path d="M25 20l18 12-18 12V20z" fill="var(--color-accent)" opacity=".3"/>
+                  </svg>
+                  <h2 class="player-empty__title">Nothing Playing</h2>
+                  <p class="player-empty__desc">Open any downloaded item to play it inside PullDown.</p>
+                </div>
+              </div>
+              <div class="player-meta">
+                <h2 id="player-title" class="player-title">Nothing playing</h2>
+                <p id="player-path" class="player-path mono">Select a downloaded file to play in PullDown.</p>
+                <div class="player-actions">
+                  <button id="player-open-folder" class="btn btn--ghost btn--sm" disabled>Open Folder</button>
+                  <button id="player-clear" class="btn btn--ghost btn--sm" disabled>Clear</button>
+                </div>
+              </div>
             </div>
           </section>
 

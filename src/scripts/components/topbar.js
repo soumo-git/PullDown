@@ -9,17 +9,25 @@ import { invokeCommand, isTauriEnvironment } from '../tauriApi.js';
 
 const getInput = () => document.getElementById('url-input');
 const getAddBtn = () => document.getElementById('btn-add');
+const getAddLabel = () => document.getElementById('btn-add-label');
 const getFormatBtn = () => document.getElementById('btn-format');
 const getFormatLabel = () => document.getElementById('btn-format-label');
 const getStatusText = () => document.getElementById('status-active-label');
 
 const URL_PLACEHOLDER = 'Paste URL - YouTube | Vimeo | Twitter | Reddit...';
+const PLAYER_PLACEHOLDER = 'Paste URL to extract and play instantly (no download)...';
 const SEARCH_PLACEHOLDER = 'Search downloaded files by title or path...';
 
 let topbarMode = 'queue';
+let activeDownloadsTab = 'queue';
+let activeView = 'downloads';
 
 function isDownloadedSearchMode() {
   return topbarMode === 'downloaded';
+}
+
+function isPlayerMode() {
+  return topbarMode === 'player';
 }
 
 function emitDownloadedSearchQuery() {
@@ -47,9 +55,28 @@ function setBusy(busy, label = 'Ready') {
   if (addBtn) {
     addBtn.disabled = isDownloadedSearchMode() || busy || !isValidUrl(getInput()?.value || '');
   }
-  if (formatBtn) formatBtn.disabled = isDownloadedSearchMode() || busy;
+  if (formatBtn) formatBtn.disabled = topbarMode !== 'queue' || busy;
   const status = getStatusText();
   if (status) status.textContent = label;
+}
+
+async function onPlayFromLink() {
+  const input = getInput();
+  if (!input) return;
+  const urlStr = input.value.trim();
+  if (!isValidUrl(urlStr)) return;
+
+  if (!isTauriEnvironment()) {
+    const status = getStatusText();
+    if (status) status.textContent = 'Run this in Tauri to extract and play.';
+    return;
+  }
+
+  const status = getStatusText();
+  if (status) status.textContent = 'Extracting stream...';
+  stateEmitter.emit('player:open', {
+    extractUrl: urlStr,
+  });
 }
 
 async function loadFormatsForInputUrl() {
@@ -79,6 +106,11 @@ async function loadFormatsForInputUrl() {
 async function onAddClick() {
   if (isDownloadedSearchMode()) {
     emitDownloadedSearchQuery();
+    return;
+  }
+
+  if (isPlayerMode()) {
+    await onPlayFromLink();
     return;
   }
 
@@ -181,24 +213,40 @@ function syncFormatLabel(fmt) {
 }
 
 function applyTopbarMode(tab) {
-  const mode = tab === 'downloaded' ? 'downloaded' : 'queue';
+  const mode = tab === 'player'
+    ? 'player'
+    : tab === 'downloaded'
+      ? 'downloaded'
+      : 'queue';
   topbarMode = mode;
 
   const input = getInput();
   const addBtn = getAddBtn();
+  const addLabel = getAddLabel();
   const fmtBtn = getFormatBtn();
 
   if (input) {
     input.type = mode === 'downloaded' ? 'text' : 'url';
-    input.placeholder = mode === 'downloaded' ? SEARCH_PLACEHOLDER : URL_PLACEHOLDER;
+    input.placeholder = mode === 'downloaded'
+      ? SEARCH_PLACEHOLDER
+      : mode === 'player'
+        ? PLAYER_PLACEHOLDER
+        : URL_PLACEHOLDER;
   }
 
   if (fmtBtn) {
-    fmtBtn.style.display = mode === 'downloaded' ? 'none' : '';
-    fmtBtn.disabled = mode === 'downloaded';
+    fmtBtn.style.display = mode === 'queue' ? '' : 'none';
+    fmtBtn.disabled = mode !== 'queue';
   }
   if (addBtn) {
     addBtn.style.display = mode === 'downloaded' ? 'none' : '';
+    addBtn.setAttribute(
+      'aria-label',
+      mode === 'player' ? 'Extract URL and play in player' : 'Add URL to download queue',
+    );
+  }
+  if (addLabel) {
+    addLabel.textContent = mode === 'player' ? 'Play' : 'Add';
   }
 
   if (mode === 'downloaded') {
@@ -207,6 +255,18 @@ function applyTopbarMode(tab) {
     stateEmitter.emit('downloads:search', '');
   }
   onInputChange();
+}
+
+function syncTopbarModeFromState() {
+  if (activeView === 'player') {
+    applyTopbarMode('player');
+    return;
+  }
+  if (activeView === 'downloads' && activeDownloadsTab === 'downloaded') {
+    applyTopbarMode('downloaded');
+    return;
+  }
+  applyTopbarMode('queue');
 }
 
 export function initTopbar() {
@@ -238,8 +298,15 @@ export function initTopbar() {
 
   stateEmitter.on('format:change', syncFormatLabel);
   stateEmitter.on('downloads:tab:change', (payload) => {
-    applyTopbarMode(payload?.tab);
+    activeDownloadsTab = payload?.tab === 'downloaded' ? 'downloaded' : 'queue';
+    syncTopbarModeFromState();
   });
+  stateEmitter.on('view:change', (view) => {
+    activeView = typeof view === 'string' ? view : 'downloads';
+    syncTopbarModeFromState();
+  });
+
+  activeView = typeof state.activeView === 'string' ? state.activeView : 'downloads';
   syncFormatLabel(state.selectedFormat);
-  applyTopbarMode('queue');
+  syncTopbarModeFromState();
 }

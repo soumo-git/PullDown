@@ -2,8 +2,9 @@
  * downloadCard.js - Queue card rendering and per-card actions.
  */
 
-import { invokeCommand } from '../tauriApi.js';
+import { invokeCommand, isTauriEnvironment } from '../tauriApi.js';
 import { formatBytes, formatSpeed } from '../utils.js';
+import { stateEmitter } from '../state.js';
 
 const ICON_PAUSE = `<svg viewBox="0 0 24 24" fill="none" width="14" height="14" aria-hidden="true">
   <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/>
@@ -147,7 +148,28 @@ function applyThumbnailToElement(thumb, item) {
 function normalizedThumbnailUrl(item) {
   if (typeof item?.thumbnail !== 'string') return null;
   const url = item.thumbnail.trim();
-  return url.length > 0 ? url : null;
+  if (!url) return null;
+  if (/^(https?:|data:|blob:|asset:)/i.test(url)) return url;
+
+  if (isTauriEnvironment()) {
+    const convert = window.__TAURI__?.core?.convertFileSrc;
+    if (typeof convert === 'function') {
+      try {
+        return convert(url);
+      } catch (err) {
+        console.warn('[PullDown] Failed to convert thumbnail path:', err);
+      }
+    }
+  }
+
+  const normalized = url.replace(/\\/g, '/');
+  if (/^[A-Za-z]:\//.test(normalized)) {
+    return `file:///${normalized}`;
+  }
+  if (normalized.startsWith('/')) {
+    return `file://${normalized}`;
+  }
+  return url;
 }
 
 function syncThumbInteractivity(thumb, item) {
@@ -170,11 +192,11 @@ function syncThumbInteractivity(thumb, item) {
   thumb.setAttribute('title', 'Play media');
   thumb.setAttribute('aria-label', `Play ${item.title || 'downloaded media'}`);
   thumb.removeAttribute('aria-hidden');
-  thumb.onclick = () => playMedia(item.filePath);
+  thumb.onclick = () => playMedia(item);
   thumb.onkeydown = (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
-    playMedia(item.filePath);
+    playMedia(item);
   };
 }
 
@@ -365,15 +387,14 @@ async function openInFileManager(path) {
   }
 }
 
-async function playMedia(path) {
-  try {
-    const cleanPath = typeof path === 'string' && path.trim() ? path.trim() : null;
-    await invokeCommand('app_play_media', {
-      request: { path: cleanPath },
-    });
-  } catch (err) {
-    console.error('[PullDown] Failed to play media:', err);
-  }
+function playMedia(item) {
+  const path = typeof item?.filePath === 'string' ? item.filePath.trim() : '';
+  if (!path) return;
+  stateEmitter.emit('player:open', {
+    path,
+    title: item?.title || '',
+    codec: item?.codec || '',
+  });
 }
 
 function statusTextFor(item) {

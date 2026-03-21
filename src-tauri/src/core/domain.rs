@@ -54,6 +54,36 @@ pub struct OpenPathRequest {
     pub path: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlayerLaunchRequest {
+    pub source: String,
+    pub is_url: Option<bool>,
+    pub title: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlayerPreparedMedia {
+    pub source_path: String,
+    pub playback_path: String,
+    pub transcoded: bool,
+    pub media_kind: String,
+    pub details: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlayerLiveSource {
+    pub source_url: String,
+    pub playback_url: String,
+    pub secondary_playback_url: Option<String>,
+    pub title: String,
+    pub media_kind: String,
+    pub live: bool,
+    pub details: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UrlValidationResponse {

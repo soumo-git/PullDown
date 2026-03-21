@@ -9,6 +9,8 @@ mod core {
 mod infrastructure {
     pub mod engines;
     pub mod media_library;
+    pub mod player;
+    pub mod player_live;
     pub mod storage;
     pub mod system;
 }
@@ -17,9 +19,13 @@ mod services {
 }
 
 use std::path::{Path, PathBuf};
+use std::process::Child;
 use std::sync::{Arc, Mutex, RwLock};
 
-use core::domain::{AppSettings, EngineInstallProgressEvent};
+use core::domain::{
+    AppSettings, EngineInstallProgressEvent, PlayerLaunchRequest, PlayerLiveSource,
+    PlayerPreparedMedia,
+};
 use core::errors::{AppError, AppResult};
 use services::queue::QueueManager;
 use tauri::Manager;
@@ -28,6 +34,7 @@ pub struct AppState {
     settings: Arc<RwLock<AppSettings>>,
     settings_path: PathBuf,
     engine_install_lock: Mutex<()>,
+    player_process: Mutex<Option<Child>>,
     pub queue: QueueManager,
 }
 
@@ -54,6 +61,7 @@ impl AppState {
             settings,
             settings_path,
             engine_install_lock: Mutex::new(()),
+            player_process: Mutex::new(None),
             queue,
         })
     }
@@ -110,6 +118,89 @@ impl AppState {
             .ok_or_else(|| AppError::Message("Media path is required".to_string()))?;
         let target = PathBuf::from(candidate);
         infrastructure::system::play_media(&target, settings.custom_ffmpeg_path.as_deref())
+    }
+
+    pub fn play_with_libvlc(
+        &self,
+        app: &tauri::AppHandle,
+        request: &PlayerLaunchRequest,
+    ) -> AppResult<()> {
+        let source = request.source.trim();
+        if source.is_empty() {
+            return Err(AppError::Message(
+                "Playback source is required".to_string(),
+            ));
+        }
+        let is_url = request.is_url.unwrap_or_else(|| {
+            let lowered = source.to_ascii_lowercase();
+            lowered.starts_with("http://") || lowered.starts_with("https://")
+        });
+
+        let mut guard = self
+            .player_process
+            .lock()
+            .expect("player process lock poisoned");
+        infrastructure::system::stop_spawned_player(guard.as_mut())?;
+        let preferred = resolve_packaged_vlc_path(app);
+        if let Some(path) = preferred.as_ref() {
+            eprintln!(
+                "[PullDown][player][INFO] play_with_libvlc: using packaged VLC binary at {}",
+                path.display()
+            );
+        } else {
+            eprintln!(
+                "[PullDown][player][WARN] play_with_libvlc: packaged VLC binary not found, using fallback discovery"
+            );
+        }
+        let child =
+            infrastructure::system::play_with_libvlc(source, is_url, preferred.as_deref())?;
+        *guard = Some(child);
+        Ok(())
+    }
+
+    pub fn stop_libvlc_player(&self) -> AppResult<()> {
+        let mut guard = self
+            .player_process
+            .lock()
+            .expect("player process lock poisoned");
+        infrastructure::system::stop_spawned_player(guard.as_mut())?;
+        *guard = None;
+        Ok(())
+    }
+
+    pub fn prepare_media_for_playback(
+        &self,
+        app: &tauri::AppHandle,
+        path: Option<&str>,
+    ) -> AppResult<PlayerPreparedMedia> {
+        let candidate = path
+            .map(str::trim)
+            .filter(|p| !p.is_empty())
+            .ok_or_else(|| AppError::Message("Media path is required".to_string()))?;
+        self.ensure_engines_available(app)?;
+        let settings = self.read_settings();
+        let target = PathBuf::from(candidate);
+        infrastructure::player::prepare_media_for_playback(app, &settings, &target)
+    }
+
+    pub fn extract_live_source_for_playback(
+        &self,
+        app: &tauri::AppHandle,
+        url: &str,
+    ) -> AppResult<PlayerLiveSource> {
+        self.ensure_engines_available(app)?;
+        let settings = self.read_settings();
+        infrastructure::player_live::extract_live_source(app, &settings, url)
+    }
+
+    pub fn debug_probe_media_for_player(&self, path: Option<&str>) -> AppResult<()> {
+        let candidate = path
+            .map(str::trim)
+            .filter(|p| !p.is_empty())
+            .ok_or_else(|| AppError::Message("Media path is required".to_string()))?;
+        let settings = self.read_settings();
+        let target = PathBuf::from(candidate);
+        infrastructure::player::debug_probe_media_for_player(&settings, &target)
     }
 
     pub fn ensure_engines_available(&self, app: &tauri::AppHandle) -> AppResult<Option<String>> {
@@ -224,6 +315,31 @@ impl AppState {
     }
 }
 
+fn resolve_packaged_vlc_path(app: &tauri::AppHandle) -> Option<PathBuf> {
+    let mut candidates = Vec::<PathBuf>::new();
+
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        candidates.push(resource_dir.join("vlc").join("windows").join("vlc.exe"));
+        candidates.push(
+            resource_dir
+                .join("resources")
+                .join("vlc")
+                .join("windows")
+                .join("vlc.exe"),
+        );
+    }
+
+    if let Ok(current_exe) = std::env::current_exe() {
+        if let Some(parent) = current_exe.parent() {
+            candidates.push(parent.join("resources").join("vlc").join("windows").join("vlc.exe"));
+            candidates.push(parent.join("vlc").join("windows").join("vlc.exe"));
+            candidates.push(parent.join("vlc.exe"));
+        }
+    }
+
+    candidates.into_iter().find(|path| path.exists())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -250,6 +366,12 @@ pub fn run() {
             app::commands::engines_install_ffmpeg,
             app::commands::app_open_in_file_manager,
             app::commands::app_play_media,
+            app::commands::app_player_play_libvlc,
+            app::commands::app_player_stop_libvlc,
+            app::commands::app_prepare_media_for_playback,
+            app::commands::app_extract_live_source_for_playback,
+            app::commands::app_resolve_media_path,
+            app::commands::app_debug_probe_media_for_player,
             app::commands::library_scan_start,
             app::commands::library_scan_pause,
             app::commands::library_scan_resume,

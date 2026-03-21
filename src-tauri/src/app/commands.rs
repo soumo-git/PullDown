@@ -2,8 +2,8 @@ use tauri::{AppHandle, Manager, State};
 
 use crate::core::domain::{
     AppHealthResponse, AppSettings, DownloadFormatOption, DownloadJob, OpenPathRequest,
-    QueueAddRequest, QueueJobRequest, QueueListResponse, SetDownloadDirRequest, UrlRequest,
-    UrlValidationResponse, VideoMetadata,
+    PlayerLaunchRequest, PlayerLiveSource, PlayerPreparedMedia, QueueAddRequest, QueueJobRequest,
+    QueueListResponse, SetDownloadDirRequest, UrlRequest, UrlValidationResponse, VideoMetadata,
 };
 use crate::core::errors::AppError;
 use crate::infrastructure::engines;
@@ -170,6 +170,101 @@ pub fn app_open_in_file_manager(
 pub fn app_play_media(state: State<'_, AppState>, request: OpenPathRequest) -> Result<(), String> {
     state
         .play_media(request.path.as_deref())
+        .map_err(to_error_string)
+}
+
+#[tauri::command]
+pub fn app_player_play_libvlc(
+    state: State<'_, AppState>,
+    app: AppHandle,
+    request: PlayerLaunchRequest,
+) -> Result<(), String> {
+    state
+        .play_with_libvlc(&app, &request)
+        .map_err(to_error_string)
+}
+
+#[tauri::command]
+pub fn app_player_stop_libvlc(state: State<'_, AppState>) -> Result<(), String> {
+    state.stop_libvlc_player().map_err(to_error_string)
+}
+
+#[tauri::command]
+pub async fn app_prepare_media_for_playback(
+    _state: State<'_, AppState>,
+    app: AppHandle,
+    request: OpenPathRequest,
+) -> Result<PlayerPreparedMedia, String> {
+    let app_for_job = app.clone();
+    let path = request.path;
+    tauri::async_runtime::spawn_blocking(move || -> Result<PlayerPreparedMedia, String> {
+        let state = app_for_job.state::<AppState>();
+        state
+            .prepare_media_for_playback(&app_for_job, path.as_deref())
+            .map_err(to_error_string)
+    })
+    .await
+    .map_err(|err| join_error_to_string("app_prepare_media_for_playback", err))?
+}
+
+#[tauri::command]
+pub async fn app_extract_live_source_for_playback(
+    _state: State<'_, AppState>,
+    app: AppHandle,
+    request: UrlRequest,
+) -> Result<PlayerLiveSource, String> {
+    let app_for_job = app.clone();
+    let url = request.url;
+    tauri::async_runtime::spawn_blocking(move || -> Result<PlayerLiveSource, String> {
+        let state = app_for_job.state::<AppState>();
+        state
+            .extract_live_source_for_playback(&app_for_job, &url)
+            .map_err(to_error_string)
+    })
+    .await
+    .map_err(|err| join_error_to_string("app_extract_live_source_for_playback", err))?
+}
+
+/// Resolves and verifies a local filesystem path, returning the canonical
+/// absolute path with forward-slashes. Used by the frontend to obtain a
+/// normalized path for `convertFileSrc()` — critical for paths with Unicode
+/// characters, spaces, or OneDrive/UNC prefixes.
+#[tauri::command]
+pub fn app_resolve_media_path(request: OpenPathRequest) -> Result<String, String> {
+    let raw = request
+        .path
+        .as_deref()
+        .map(str::trim)
+        .filter(|p| !p.is_empty())
+        .ok_or_else(|| "Path is required".to_string())?;
+
+    let path = std::path::PathBuf::from(raw);
+    if !path.exists() {
+        return Err(format!("File not found: {raw}"));
+    }
+    if !path.is_file() {
+        return Err(format!("Not a file: {raw}"));
+    }
+
+    // canonicalize resolves ../, symlinks, UNC prefixes (\\?\) etc.
+    let canonical = path.canonicalize().unwrap_or_else(|_| path.clone());
+
+    // Strip extended-length prefix (\\?\) on Windows — Webview2 does not handle it.
+    let s = canonical.to_string_lossy().into_owned();
+    #[cfg(target_os = "windows")]
+    let s = s.strip_prefix(r"\\?\").unwrap_or(&s).to_string();
+
+    eprintln!("[PullDown][player][INFO] app_resolve_media_path: raw={raw:?} resolved={s:?}");
+    Ok(s)
+}
+
+#[tauri::command]
+pub fn app_debug_probe_media_for_player(
+    state: State<'_, AppState>,
+    request: OpenPathRequest,
+) -> Result<(), String> {
+    state
+        .debug_probe_media_for_player(request.path.as_deref())
         .map_err(to_error_string)
 }
 

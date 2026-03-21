@@ -56,6 +56,7 @@ src-tauri/engines/macos/ffmpeg
 .next/
 .nuxt/
 .vite/
+.tmp/
 
 # Environment and secrets
 .env
@@ -69,3 +70,7 @@ Thumbs.db
 ehthumbs.db
 
 # keep node package lockfiles tracked (do not ignore package-lock.json / yarn.lock)
+
+# Bundled VLC runtime is fetched locally via scripts/fetch-vlc.ps1
+src-tauri/resources/vlc/windows/**
+!src-tauri/resources/vlc/windows/.gitkeep

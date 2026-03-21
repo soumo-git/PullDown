@@ -14,18 +14,24 @@
         "width": 800,
         "height": 800,
         "minWidth": 1024,
-        "minHeight": 680
+        "minHeight": 680,
+        "transparent": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' asset: https:; media-src 'self' asset: blob: https:; connect-src 'self' https: http://ipc.localhost ipc:; font-src 'self' https://fonts.gstatic.com",
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["**"]
+      }
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
     "resources": [
-      "engines/**/*"
+      "engines/**/*",
+      "resources/vlc/windows/**/*"
     ],
     "icon": [
     "icons/128x128.png",
