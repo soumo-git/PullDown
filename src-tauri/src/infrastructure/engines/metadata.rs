@@ -7,6 +7,7 @@ use crate::core::domain::{
     AppSettings, DownloadFormatOption, DownloadInfoResponse, UrlValidationResponse, VideoMetadata,
 };
 use crate::core::errors::{AppError, AppResult};
+use crate::infrastructure::process::CommandBackgroundExt;
 
 use super::resolve_yt_dlp_path;
 
@@ -53,6 +54,7 @@ pub fn extract_download_info(settings: &AppSettings, url: &str) -> AppResult<Dow
 fn run_ytdlp_info(settings: &AppSettings, url: &str) -> AppResult<Value> {
     let ytdlp = resolve_yt_dlp_path(settings);
     let output = Command::new(&ytdlp)
+        .for_background_job()
         .args(["--no-warnings", "--no-playlist", "--dump-single-json", url])
         .output()
         .map_err(|err| AppError::Process(err.to_string()))?;

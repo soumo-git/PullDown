@@ -11,6 +11,7 @@ use tauri::{AppHandle, Manager};
 use crate::core::domain::{AppSettings, PlayerPreparedMedia};
 use crate::core::errors::{AppError, AppResult};
 use crate::infrastructure::engines;
+use crate::infrastructure::process::CommandBackgroundExt;
 
 const PLAYER_CACHE_SCHEMA_VERSION: &str = "v2";
 const PLAYER_CACHE_DIR: &str = "player-cache";
@@ -373,6 +374,7 @@ fn run_stream_copy(ffmpeg_command: &str, source: &Path, target: &Path) -> AppRes
     );
 
     let output = Command::new(ffmpeg_command)
+        .for_background_job()
         .arg("-y")
         .arg("-hide_banner")
         .arg("-loglevel")
@@ -439,6 +441,7 @@ fn run_full_encode(
     );
 
     let mut command = Command::new(ffmpeg_command);
+    command.for_background_job();
     command
         .arg("-y")
         .arg("-hide_banner")
@@ -514,6 +517,7 @@ fn probe_media_info(ffmpeg_command: &str, source: &Path) -> Option<ProbeInfo> {
     let candidates = ffprobe_candidates(ffmpeg_command);
     for candidate in candidates {
         let output = Command::new(&candidate)
+            .for_background_job()
             .arg("-v")
             .arg("error")
             .arg("-print_format")
@@ -626,6 +630,7 @@ fn lower_extension(source: &Path) -> String {
 
 fn probe_media_info_via_ffmpeg(ffmpeg_command: &str, source: &Path) -> Option<ProbeInfo> {
     let output = Command::new(ffmpeg_command)
+        .for_background_job()
         .arg("-hide_banner")
         .arg("-i")
         .arg(source)

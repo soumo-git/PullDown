@@ -4,6 +4,7 @@ use tauri::AppHandle;
 use crate::core::domain::{AppSettings, PlayerLiveSource};
 use crate::core::errors::{AppError, AppResult};
 use crate::infrastructure::engines;
+use crate::infrastructure::process::CommandBackgroundExt;
 
 const LIVE_PROGRESSIVE_SELECTOR: &str = "best*[vcodec!=none][acodec!=none]/best";
 const BEST_AUDIO_SELECTOR: &str = "bestaudio/best";
@@ -100,6 +101,7 @@ fn run_ytdlp_info(settings: &AppSettings, source_url: &str, selector: &str) -> A
     );
 
     let output = std::process::Command::new(&ytdlp)
+        .for_background_job()
         .args([
             "--no-warnings",
             "--no-playlist",

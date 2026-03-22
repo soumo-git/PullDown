@@ -9,6 +9,7 @@ mod core {
 mod infrastructure {
     pub mod engines;
     pub mod media_library;
+    pub mod process;
     pub mod player;
     pub mod player_live;
     pub mod storage;

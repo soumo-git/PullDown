@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 
 use crate::core::errors::{AppError, AppResult};
+use crate::infrastructure::process::CommandBackgroundExt;
 
 pub fn open_in_file_manager(target: &Path, fallback_dir: &Path) -> AppResult<()> {
     let resolved = resolve_open_target(target, fallback_dir)?;
@@ -118,6 +119,7 @@ pub fn play_with_libvlc(
         } else {
             Command::new("vlc")
         };
+        command.for_background_job();
 
         command
             .arg("--no-video-title-show")
@@ -295,6 +297,7 @@ fn resolve_ffplay_path(custom_ffmpeg_path: Option<&str>) -> Option<PathBuf> {
 
 fn spawn_ffplay_path(ffplay_path: &Path, target: &Path) -> AppResult<()> {
     Command::new(ffplay_path)
+        .for_background_job()
         .args(["-autoexit", "-hide_banner", "-loglevel", "error"])
         .arg(target)
         .stdin(Stdio::null())
@@ -307,6 +310,7 @@ fn spawn_ffplay_path(ffplay_path: &Path, target: &Path) -> AppResult<()> {
 
 fn spawn_ffplay_from_path(target: &Path) -> AppResult<()> {
     Command::new(FFPLAY_NAME)
+        .for_background_job()
         .args(["-autoexit", "-hide_banner", "-loglevel", "error"])
         .arg(target)
         .stdin(Stdio::null())
@@ -342,6 +346,7 @@ fn open_media_with_default_app(target: &Path) -> AppResult<()> {
 #[cfg(target_os = "windows")]
 fn open_media_with_default_app_windows(target: &Path) -> AppResult<()> {
     Command::new("explorer")
+        .for_background_job()
         .arg(target)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
@@ -354,6 +359,7 @@ fn open_media_with_default_app_windows(target: &Path) -> AppResult<()> {
 #[cfg(target_os = "macos")]
 fn open_media_with_default_app_macos(target: &Path) -> AppResult<()> {
     Command::new("open")
+        .for_background_job()
         .arg(target)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
@@ -366,6 +372,7 @@ fn open_media_with_default_app_macos(target: &Path) -> AppResult<()> {
 #[cfg(all(unix, not(target_os = "macos")))]
 fn open_media_with_default_app_linux(target: &Path) -> AppResult<()> {
     Command::new("xdg-open")
+        .for_background_job()
         .arg(target)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
@@ -379,12 +386,14 @@ fn open_media_with_default_app_linux(target: &Path) -> AppResult<()> {
 fn open_in_file_manager_windows(path: &Path) -> AppResult<()> {
     let status = if path.is_file() {
         Command::new("explorer")
+            .for_background_job()
             .arg("/select,")
             .arg(path)
             .status()
             .map_err(|err| AppError::Process(err.to_string()))?
     } else {
         Command::new("explorer")
+            .for_background_job()
             .arg(path)
             .status()
             .map_err(|err| AppError::Process(err.to_string()))?
@@ -401,6 +410,7 @@ fn open_in_file_manager_windows(path: &Path) -> AppResult<()> {
 #[cfg(target_os = "macos")]
 fn open_in_file_manager_macos(path: &Path) -> AppResult<()> {
     let mut command = Command::new("open");
+    command.for_background_job();
     if path.is_file() {
         command.arg("-R").arg(path);
     } else {
@@ -425,6 +435,7 @@ fn open_in_file_manager_linux(path: &Path) -> AppResult<()> {
         path
     };
     let status = Command::new("xdg-open")
+        .for_background_job()
         .arg(directory)
         .status()
         .map_err(|err| AppError::Process(err.to_string()))?;
@@ -454,6 +465,7 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
 "#;
 
     let mut command = Command::new("powershell");
+    command.for_background_job();
     command.args(["-NoProfile", "-Command", script]);
     if let Some(initial) = initial_dir {
         if !initial.as_os_str().is_empty() {
@@ -499,6 +511,7 @@ fn pick_directory_macos(initial_dir: Option<&Path>) -> AppResult<Option<PathBuf>
     script.push_str(")\nreturn chosenFolder");
 
     let output = Command::new("osascript")
+        .for_background_job()
         .arg("-e")
         .arg(script)
         .output()
@@ -525,6 +538,7 @@ fn pick_directory_macos(initial_dir: Option<&Path>) -> AppResult<Option<PathBuf>
 #[cfg(all(unix, not(target_os = "macos")))]
 fn pick_directory_linux(initial_dir: Option<&Path>) -> AppResult<Option<PathBuf>> {
     let mut zenity = Command::new("zenity");
+    zenity.for_background_job();
     zenity.args(["--file-selection", "--directory"]);
     if let Some(initial) = initial_dir {
         zenity.arg("--filename").arg(initial);

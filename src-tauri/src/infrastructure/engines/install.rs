@@ -6,6 +6,7 @@ use tauri::AppHandle;
 
 use crate::core::domain::AppSettings;
 use crate::core::errors::{AppError, AppResult};
+use crate::infrastructure::process::CommandBackgroundExt;
 
 use super::binaries::{
     atomic_replace_binary, detect_current_ytdlp_version, detect_ffmpeg_version,
@@ -210,6 +211,7 @@ pub fn run_ytdlp_self_update(settings: &AppSettings) -> AppResult<String> {
 
 fn run_ytdlp_self_update_via_command(command: &str) -> AppResult<String> {
     let out = Command::new(command)
+        .for_background_job()
         .args(["-U"])
         .output()
         .map_err(|err| AppError::Process(err.to_string()))?;

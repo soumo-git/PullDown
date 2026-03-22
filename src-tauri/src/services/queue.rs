@@ -17,6 +17,7 @@ use crate::core::domain::{
 use crate::core::errors::{AppError, AppResult};
 use crate::core::events;
 use crate::infrastructure::engines;
+use crate::infrastructure::process::CommandBackgroundExt;
 
 #[derive(Clone)]
 pub struct QueueManager {
@@ -313,6 +314,7 @@ impl QueueManager {
         }
 
         let mut command = Command::new(&ytdlp);
+        command.for_background_job();
         command
             .arg("--newline")
             .arg("--continue")

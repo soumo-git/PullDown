@@ -6,6 +6,7 @@ use tauri::{AppHandle, Manager};
 
 use crate::core::domain::AppSettings;
 use crate::core::errors::{AppError, AppResult};
+use crate::infrastructure::process::CommandBackgroundExt;
 
 use super::{DEFAULT_FFMPEG, DEFAULT_YT_DLP, PLATFORM_DIR};
 
@@ -53,7 +54,11 @@ pub(crate) fn managed_engines_dir(app: &AppHandle) -> AppResult<PathBuf> {
 }
 
 pub(crate) fn command_available(command: &str, args: &[&str]) -> bool {
-    match Command::new(command).args(args).output() {
+    match Command::new(command)
+        .for_background_job()
+        .args(args)
+        .output()
+    {
         Ok(out) => {
             let ok = out.status.success();
             if !ok {

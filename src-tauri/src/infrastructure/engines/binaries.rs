@@ -6,6 +6,7 @@ use std::process::Command;
 use sha2::{Digest, Sha256};
 
 use crate::core::errors::{AppError, AppResult};
+use crate::infrastructure::process::CommandBackgroundExt;
 
 #[cfg(target_os = "windows")]
 use super::FFMPEG_WINDOWS_ZIP_URL;
@@ -16,6 +17,7 @@ use super::{
 
 pub(crate) fn detect_current_ytdlp_version(path: &Path) -> AppResult<String> {
     let output = Command::new(path)
+        .for_background_job()
         .arg("--version")
         .output()
         .map_err(|err| AppError::Process(err.to_string()))?;
@@ -34,6 +36,7 @@ pub(crate) fn detect_current_ytdlp_version(path: &Path) -> AppResult<String> {
 
 pub(crate) fn detect_ffmpeg_version(path: &Path) -> AppResult<String> {
     let output = Command::new(path)
+        .for_background_job()
         .arg("-version")
         .output()
         .map_err(|err| AppError::Process(err.to_string()))?;

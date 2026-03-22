@@ -1,6 +1,7 @@
 use std::process::Command;
 
 use crate::core::domain::{AppSettings, EngineBinaryStatus, EnginesStatusResponse};
+use crate::infrastructure::process::CommandBackgroundExt;
 
 use super::{
     fetch_latest_ytdlp_release, is_newer_version, normalize_version, resolve_ffmpeg_path,
@@ -62,7 +63,10 @@ pub fn engines_status(settings: &AppSettings) -> EnginesStatusResponse {
 }
 
 fn probe_engine(name: &str, command: &str, args: &[&str], managed: bool) -> EngineBinaryStatus {
-    let output = Command::new(command).args(args).output();
+    let output = Command::new(command)
+        .for_background_job()
+        .args(args)
+        .output();
     match output {
         Ok(out) => {
             if out.status.success() {
