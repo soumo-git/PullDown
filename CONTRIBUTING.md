@@ -1,67 +1,79 @@
-# Contributing to PullDown
+# Contributing Guide
 
-Thanks for contributing. This project uses a release/stability branch model:
+Thanks for contributing to PullDown. This guide defines the expected engineering and review standards.
 
-- `main`: stable, release-ready code only.
-- `dev`: active development and pre-release integration.
+## Branching Model
 
-## Workflow
+- `main`: stable release branch
+- `dev`: active development branch
 
-1. Branch from `dev`:
-   - `feature/<short-name>`
-   - `fix/<short-name>`
-   - `chore/<short-name>`
-2. Keep commits focused and atomic.
-3. Rebase on latest `dev` before opening a PR.
-4. Open PR into `dev` (default).
-5. After validation, maintainers promote selected commits from `dev` to `main` for stable releases.
+For feature work, branch from `dev` and open PRs into `dev` unless maintainers request otherwise.
+
+## Development Setup
+
+1. Fork and clone the repository.
+2. Install prerequisites:
+   - Rust (stable)
+   - Node.js 18+
+3. Install dependencies:
+   - `npm install`
+4. Run app in development:
+   - `npm run tauri dev`
 
 ## Coding Standards
 
-- Preserve existing architecture and module boundaries.
-- Prefer small files/functions with clear responsibilities.
-- Handle errors explicitly; avoid silent failures.
-- Keep logging actionable (`INFO/WARN/ERROR` with context).
-- Avoid dead code, commented-out blocks, and unrelated refactors.
-- Follow existing naming/style conventions in Rust and frontend code.
-- Use production-safe defaults and deterministic behavior.
+### General
 
-## Testing and Validation
+- Keep changes focused and minimal. Do not refactor unrelated code in the same PR.
+- Prefer clear naming and small functions/modules over dense logic.
+- Follow existing project architecture and folder conventions.
+- Preserve platform behavior (especially Windows) when touching process/system code.
 
-Before opening a PR, run:
+### Frontend (JS/CSS/HTML)
 
-```bash
-# backend
-cd src-tauri
-cargo check --all-targets
+- Keep modules cohesive and avoid large monolithic files.
+- Reuse shared helpers/components before introducing new patterns.
+- Avoid breaking IPC command names/payload contracts.
 
-# if frontend/package changes were made
-npm install
-```
+### Rust Backend
 
-If behavior changes, include manual test notes in the PR description.
+- Use explicit error handling; do not silently swallow failures.
+- Keep process execution safe and platform-aware.
+- Add logging for operationally relevant failures and state transitions.
+- Preserve separation between app/core/infrastructure/services layers.
 
-## Pull Request Requirements
+## Testing & Validation
 
-Every PR should include:
+Before opening a PR:
 
-- Clear summary of what changed and why.
-- Scope boundaries (what is intentionally not changed).
-- Risk/impact notes (runtime, UX, compatibility).
-- Validation evidence (commands run, screenshots/log snippets when relevant).
+- Run `cargo check --all-targets` in `src-tauri`.
+- Run a local smoke test for the changed user flow.
+- If packaging or installer behavior changes, validate a release build path.
 
-PRs may be rejected if they:
+## Pull Request Process
 
-- mix unrelated changes,
-- bypass branch policy (`main` direct feature work),
-- reduce reliability/readability,
-- or ship incomplete production behavior.
+1. Create a focused branch from `dev`.
+2. Write clear commits (imperative subject line).
+3. Open a PR to `dev` with:
+   - Problem summary
+   - What changed
+   - Risk/impact notes
+   - Manual test steps and results
+   - Screenshots/video for UI changes
+4. Ensure CI/checks pass.
+5. Address review comments with follow-up commits.
+6. Squash/merge strategy will be decided by maintainers.
 
-## Release Notes Expectations
+## PR Quality Bar
 
-For user-visible changes, add concise release-note-ready bullets in the PR description:
+A PR is ready when:
 
-- Added
-- Changed
-- Fixed
-- Known limitations
+- Scope is clear and limited.
+- No known regressions are introduced.
+- Logs/errors are actionable.
+- Docs are updated when behavior changes.
+
+## Security & Conduct
+
+- Report vulnerabilities via [SECURITY.md](SECURITY.md).
+- Follow community expectations in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
