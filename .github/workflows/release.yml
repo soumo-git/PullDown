@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    name: Build and publish installer
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Build NSIS installer
+        shell: pwsh
+        run: |
+          $env:CARGO_BUILD_JOBS = "1"
+          npm run tauri -- build --bundles nsis
+
+      - name: Generate SHA256 checksum
+        id: checksum
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis/*-setup.exe" | Select-Object -First 1
+          if (-not $installer) {
+            throw "Installer was not generated."
+          }
+          $hash = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash.ToLowerInvariant()
+          $checksumFile = "src-tauri/target/release/bundle/nsis/SHA256SUMS.txt"
+          Set-Content -Path $checksumFile -Value "$hash  $($installer.Name)"
+          "installer_path=$($installer.FullName)" >> $env:GITHUB_OUTPUT
+          "checksum_path=$checksumFile" >> $env:GITHUB_OUTPUT
+
+      - name: Upload build artifacts (workflow)
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulldown-installer-${{ github.ref_name }}
+          path: |
+            ${{ steps.checksum.outputs.installer_path }}
+            ${{ steps.checksum.outputs.checksum_path }}
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.checksum.outputs.installer_path }}
+            ${{ steps.checksum.outputs.checksum_path }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+          body: |
+            PullDown release for `${{ github.ref_name }}`.
+
+            - Asset: Windows NSIS installer (`.exe`)
+            - Includes app-bundled engines/runtime from repository resources
+            - SHA256 checksum attached as `SHA256SUMS.txt`

@@ -1,0 +1,30 @@
+name: Branch Policy
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-main-pr-source:
+    name: Enforce main PR source branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate source branch for PRs into main
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.base_ref }}"
+          HEAD="${{ github.head_ref }}"
+
+          if [[ "${BASE}" == "main" && "${HEAD}" != "dev" ]]; then
+            echo "Only PRs from 'dev' into 'main' are allowed."
+            echo "Current PR source: '${HEAD}' -> '${BASE}'"
+            exit 1
+          fi
+
+          echo "Branch policy check passed: '${HEAD}' -> '${BASE}'"
