@@ -214,8 +214,9 @@ fn resolve_video_and_audio_urls(info: &Value) -> AppResult<(String, Option<Strin
         return Ok((audio, None));
     }
 
-    let primary = resolve_primary_url(info)
-        .ok_or_else(|| AppError::Process("Unable to resolve a playable video stream URL".to_string()))?;
+    let primary = resolve_primary_url(info).ok_or_else(|| {
+        AppError::Process("Unable to resolve a playable video stream URL".to_string())
+    })?;
     Ok((primary, None))
 }
 
