@@ -1,9 +1,10 @@
 use tauri::{AppHandle, Manager, State};
 
 use crate::core::domain::{
-    AppHealthResponse, AppSettings, DownloadFormatOption, DownloadJob, OpenPathRequest,
-    PlayerLaunchRequest, PlayerLiveSource, PlayerPreparedMedia, QueueAddRequest, QueueJobRequest,
-    QueueListResponse, SetDownloadDirRequest, UrlRequest, UrlValidationResponse, VideoMetadata,
+    AppHealthResponse, AppSettings, ConverterRunRequest, ConverterRunResponse,
+    DownloadFormatOption, DownloadJob, OpenPathRequest, PlayerLaunchRequest, PlayerLiveSource,
+    PlayerPreparedMedia, QueueAddRequest, QueueJobRequest, QueueListResponse,
+    SetDownloadDirRequest, UrlRequest, UrlValidationResponse, VideoMetadata,
 };
 use crate::core::errors::AppError;
 use crate::infrastructure::engines;
@@ -171,6 +172,43 @@ pub fn app_play_media(state: State<'_, AppState>, request: OpenPathRequest) -> R
     state
         .play_media(request.path.as_deref())
         .map_err(to_error_string)
+}
+
+#[tauri::command]
+pub fn converter_pick_source_file(request: OpenPathRequest) -> Result<Option<String>, String> {
+    let initial_dir = request.path.as_deref().and_then(|raw| {
+        let normalized = raw.replace('\0', "");
+        let cleaned = normalized.trim().trim_matches('"').to_string();
+        let path = std::path::PathBuf::from(cleaned);
+        if path.as_os_str().is_empty() {
+            return None;
+        }
+        if path.is_file() {
+            return path.parent().map(|parent| parent.to_path_buf());
+        }
+        Some(path)
+    });
+
+    let selected = crate::infrastructure::system::pick_media_file(initial_dir.as_deref())
+        .map_err(to_error_string)?;
+    Ok(selected.map(|path| path.to_string_lossy().to_string()))
+}
+
+#[tauri::command]
+pub async fn converter_run(
+    _state: State<'_, AppState>,
+    app: AppHandle,
+    request: ConverterRunRequest,
+) -> Result<ConverterRunResponse, String> {
+    let app_for_job = app.clone();
+    tauri::async_runtime::spawn_blocking(move || -> Result<ConverterRunResponse, String> {
+        let state = app_for_job.state::<AppState>();
+        state
+            .convert_media(&app_for_job, &request)
+            .map_err(to_error_string)
+    })
+    .await
+    .map_err(|err| join_error_to_string("converter_run", err))?
 }
 
 #[tauri::command]

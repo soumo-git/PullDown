@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="styles/base.css" />
     <link rel="stylesheet" href="styles/layout.css" />
     <link rel="stylesheet" href="styles/components.css" />
+    <link rel="stylesheet" href="styles/converter.css" />
   </head>
 
   <body>
@@ -59,6 +60,20 @@
                   <path d="M3 20h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                 </svg>
                 <span>Downloads</span>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button
+                id="nav-converter"
+                class="nav-btn"
+                data-view="converter"
+                aria-label="Converter view"
+              >
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="3.75" y="4.75" width="16.5" height="14.5" rx="2.25" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M8.5 9h7M8.5 13h4.5M8.5 16.5h2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Converter</span>
               </button>
             </li>
             <li class="nav-item">
@@ -139,7 +154,7 @@
         <main id="main-content" class="main-content" role="main">
 
           <!-- TOP BAR: URL input + controls -->
-          <header class="topbar" role="banner">
+          <header id="topbar" class="topbar" role="banner">
             <div class="topbar__url-group">
               <div class="url-input-wrap">
                 <svg class="url-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -237,6 +252,101 @@
               </svg>
               <p class="queue-empty__title">No downloads yet</p>
               <p class="queue-empty__hint">Paste a URL above and hit <kbd>Enter</kbd> or click Add</p>
+            </div>
+          </section>
+
+          <!-- CONVERTER VIEW -->
+          <section id="view-converter" class="view" style="display:none;" aria-label="Converter">
+            <div class="converter-view">
+              <div class="converter-hero">
+                <h1 class="converter-title">Converter</h1>
+                <p class="converter-subtitle">Convert local video, audio, and image files using ffmpeg.</p>
+              </div>
+
+              <div class="converter-grid">
+                <section class="converter-card" aria-label="Source media">
+                  <div class="converter-card__head">
+                    <h2 class="converter-card__title">Source</h2>
+                    <span class="converter-card__hint mono">Local file</span>
+                  </div>
+                  <div id="converter-dropzone" class="converter-dropzone" tabindex="0" aria-label="Choose source media file">
+                    <input id="converter-source-input" type="file" class="sr-only" accept="video/*,audio/*,image/*" />
+                    <div class="converter-dropzone__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
+                        <path d="M12 15V6M12 6l-4 4M12 6l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 18.5h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+                    <p id="converter-source-name" class="converter-source-name">No file selected</p>
+                    <p id="converter-source-meta" class="converter-source-meta">Select a video, audio, or image file.</p>
+                    <button id="btn-converter-pick" class="btn btn--ghost btn--sm" aria-label="Choose source file">
+                      Choose File
+                    </button>
+                  </div>
+                  <p id="converter-source-path" class="converter-source-path mono">Path: -</p>
+                </section>
+
+                <section class="converter-card" aria-label="Output settings">
+                  <div class="converter-card__head">
+                    <h2 class="converter-card__title">Output</h2>
+                    <span class="converter-card__hint mono">Format profile</span>
+                  </div>
+
+                  <div class="converter-types" role="tablist" aria-label="Media type">
+                    <button id="converter-type-video" class="converter-type is-active" data-type="video" role="tab" aria-selected="true">Video</button>
+                    <button id="converter-type-audio" class="converter-type" data-type="audio" role="tab" aria-selected="false">Audio</button>
+                    <button id="converter-type-image" class="converter-type" data-type="image" role="tab" aria-selected="false">Image</button>
+                  </div>
+
+                  <label class="converter-label" for="converter-format-select">Target format</label>
+                  <select id="converter-format-select" class="converter-select" aria-label="Target output format"></select>
+
+                  <label class="converter-label" for="converter-output-name">Output file name</label>
+                  <div class="converter-input-wrap">
+                    <input
+                      id="converter-output-name"
+                      class="converter-input"
+                      type="text"
+                      placeholder="Converted file name"
+                      autocomplete="off"
+                      spellcheck="false"
+                    />
+                    <span id="converter-output-ext" class="converter-output-ext mono">.mp4</span>
+                  </div>
+
+                  <div class="converter-actions">
+                    <label class="converter-toggle">
+                      <input id="converter-overwrite" type="checkbox" checked />
+                      <span>Overwrite existing file</span>
+                    </label>
+                    <button id="btn-converter-start" class="btn btn--primary" aria-label="Start conversion">
+                      Convert
+                    </button>
+                  </div>
+                </section>
+              </div>
+
+              <section class="converter-card converter-card--status" aria-label="Conversion progress">
+                <div class="converter-status-row">
+                  <div>
+                    <h2 class="converter-card__title">Progress</h2>
+                    <p id="converter-status-text" class="converter-status-text">Ready to convert.</p>
+                  </div>
+                  <span id="converter-status-chip" class="converter-status-chip">Idle</span>
+                </div>
+                <div class="converter-progress">
+                  <div class="converter-progress__bar">
+                    <div id="converter-progress-fill" class="converter-progress__fill" data-indeterminate="false"></div>
+                  </div>
+                  <span id="converter-progress-value" class="converter-progress__value mono">0%</span>
+                </div>
+                <div id="converter-result" class="converter-result" style="display:none;">
+                  <span id="converter-output-path" class="converter-output-path mono"></span>
+                  <button id="btn-converter-open-folder" class="btn btn--ghost btn--sm" aria-label="Open output folder">
+                    Open Folder
+                  </button>
+                </div>
+              </section>
             </div>
           </section>
 

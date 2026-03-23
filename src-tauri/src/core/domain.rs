@@ -56,6 +56,26 @@ pub struct OpenPathRequest {
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ConverterRunRequest {
+    pub task_id: String,
+    pub source_path: String,
+    pub media_type: String,
+    pub output_format: String,
+    pub output_name: Option<String>,
+    pub overwrite: Option<bool>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConverterRunResponse {
+    pub task_id: String,
+    pub output_path: String,
+    pub media_type: String,
+    pub output_format: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PlayerLaunchRequest {
     pub source: String,
     pub is_url: Option<bool>,
@@ -227,4 +247,14 @@ pub struct LibraryScanProgressEvent {
 pub struct LibraryScanBatchEvent {
     pub scan_id: u64,
     pub items: Vec<LibraryVideoItem>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConverterProgressEvent {
+    pub task_id: String,
+    pub stage: String,
+    pub message: String,
+    pub progress_percent: Option<u8>,
+    pub output_path: Option<String>,
 }

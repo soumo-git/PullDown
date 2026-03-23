@@ -13,6 +13,7 @@ const getAddLabel = () => document.getElementById('btn-add-label');
 const getFormatBtn = () => document.getElementById('btn-format');
 const getFormatLabel = () => document.getElementById('btn-format-label');
 const getStatusText = () => document.getElementById('status-active-label');
+const getTopbar = () => document.getElementById('topbar');
 
 const URL_PLACEHOLDER = 'Paste URL - YouTube | Vimeo | Twitter | Reddit...';
 const PLAYER_PLACEHOLDER = 'Paste URL to extract and play instantly (no download)...';
@@ -24,6 +25,10 @@ let activeView = 'downloads';
 
 function isDownloadedSearchMode() {
   return topbarMode === 'downloaded';
+}
+
+function isConverterMode() {
+  return topbarMode === 'converter';
 }
 
 function isPlayerMode() {
@@ -40,9 +45,9 @@ function onInputChange() {
   const input = getInput();
   const addBtn = getAddBtn();
   if (!input || !addBtn) return;
-  if (isDownloadedSearchMode()) {
+  if (isDownloadedSearchMode() || isConverterMode()) {
     addBtn.disabled = true;
-    emitDownloadedSearchQuery();
+    if (isDownloadedSearchMode()) emitDownloadedSearchQuery();
     return;
   }
   const valid = isValidUrl(input.value);
@@ -53,7 +58,10 @@ function setBusy(busy, label = 'Ready') {
   const addBtn = getAddBtn();
   const formatBtn = getFormatBtn();
   if (addBtn) {
-    addBtn.disabled = isDownloadedSearchMode() || busy || !isValidUrl(getInput()?.value || '');
+    addBtn.disabled = isDownloadedSearchMode()
+      || isConverterMode()
+      || busy
+      || !isValidUrl(getInput()?.value || '');
   }
   if (formatBtn) formatBtn.disabled = topbarMode !== 'queue' || busy;
   const status = getStatusText();
@@ -215,19 +223,28 @@ function syncFormatLabel(fmt) {
 function applyTopbarMode(tab) {
   const mode = tab === 'player'
     ? 'player'
+    : tab === 'converter'
+      ? 'converter'
     : tab === 'downloaded'
       ? 'downloaded'
       : 'queue';
   topbarMode = mode;
 
+  const topbar = getTopbar();
   const input = getInput();
   const addBtn = getAddBtn();
   const addLabel = getAddLabel();
   const fmtBtn = getFormatBtn();
 
+  if (topbar) {
+    topbar.style.display = mode === 'converter' ? 'none' : '';
+  }
+
   if (input) {
     input.type = mode === 'downloaded' ? 'text' : 'url';
-    input.placeholder = mode === 'downloaded'
+    input.placeholder = mode === 'converter'
+      ? ''
+      : mode === 'downloaded'
       ? SEARCH_PLACEHOLDER
       : mode === 'player'
         ? PLAYER_PLACEHOLDER
@@ -258,6 +275,10 @@ function applyTopbarMode(tab) {
 }
 
 function syncTopbarModeFromState() {
+  if (activeView === 'converter') {
+    applyTopbarMode('converter');
+    return;
+  }
   if (activeView === 'player') {
     applyTopbarMode('player');
     return;

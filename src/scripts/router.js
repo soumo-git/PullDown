@@ -6,7 +6,7 @@
 import { state, actions, stateEmitter } from './state.js';
 
 // ── View element map ──────────────────────────────────────────────────────────
-const VIEW_IDS = ['downloads', 'player', 'browse', 'library', 'settings'];
+const VIEW_IDS = ['downloads', 'converter', 'player', 'browse', 'library', 'settings'];
 
 /**
  * Show the given view, hiding all others.

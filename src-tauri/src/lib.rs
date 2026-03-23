@@ -7,11 +7,12 @@ mod core {
     pub mod events;
 }
 mod infrastructure {
+    pub mod converter;
     pub mod engines;
     pub mod media_library;
-    pub mod process;
     pub mod player;
     pub mod player_live;
+    pub mod process;
     pub mod storage;
     pub mod system;
 }
@@ -24,8 +25,8 @@ use std::process::Child;
 use std::sync::{Arc, Mutex, RwLock};
 
 use core::domain::{
-    AppSettings, EngineInstallProgressEvent, PlayerLaunchRequest, PlayerLiveSource,
-    PlayerPreparedMedia,
+    AppSettings, ConverterRunRequest, ConverterRunResponse, EngineInstallProgressEvent,
+    PlayerLaunchRequest, PlayerLiveSource, PlayerPreparedMedia,
 };
 use core::errors::{AppError, AppResult};
 use services::queue::QueueManager;
@@ -128,9 +129,7 @@ impl AppState {
     ) -> AppResult<()> {
         let source = request.source.trim();
         if source.is_empty() {
-            return Err(AppError::Message(
-                "Playback source is required".to_string(),
-            ));
+            return Err(AppError::Message("Playback source is required".to_string()));
         }
         let is_url = request.is_url.unwrap_or_else(|| {
             let lowered = source.to_ascii_lowercase();
@@ -153,8 +152,7 @@ impl AppState {
                 "[PullDown][player][WARN] play_with_libvlc: packaged VLC binary not found, using fallback discovery"
             );
         }
-        let child =
-            infrastructure::system::play_with_libvlc(source, is_url, preferred.as_deref())?;
+        let child = infrastructure::system::play_with_libvlc(source, is_url, preferred.as_deref())?;
         *guard = Some(child);
         Ok(())
     }
@@ -202,6 +200,17 @@ impl AppState {
         let settings = self.read_settings();
         let target = PathBuf::from(candidate);
         infrastructure::player::debug_probe_media_for_player(&settings, &target)
+    }
+
+    pub fn convert_media(
+        &self,
+        app: &tauri::AppHandle,
+        request: &ConverterRunRequest,
+    ) -> AppResult<ConverterRunResponse> {
+        self.ensure_engines_available(app)?;
+        let settings = self.read_settings();
+        let ffmpeg = infrastructure::engines::resolve_ffmpeg_path(&settings);
+        infrastructure::converter::run_conversion(app, &ffmpeg, request)
     }
 
     pub fn ensure_engines_available(&self, app: &tauri::AppHandle) -> AppResult<Option<String>> {
@@ -332,7 +341,13 @@ fn resolve_packaged_vlc_path(app: &tauri::AppHandle) -> Option<PathBuf> {
 
     if let Ok(current_exe) = std::env::current_exe() {
         if let Some(parent) = current_exe.parent() {
-            candidates.push(parent.join("resources").join("vlc").join("windows").join("vlc.exe"));
+            candidates.push(
+                parent
+                    .join("resources")
+                    .join("vlc")
+                    .join("windows")
+                    .join("vlc.exe"),
+            );
             candidates.push(parent.join("vlc").join("windows").join("vlc.exe"));
             candidates.push(parent.join("vlc.exe"));
         }
@@ -367,6 +382,8 @@ pub fn run() {
             app::commands::engines_install_ffmpeg,
             app::commands::app_open_in_file_manager,
             app::commands::app_play_media,
+            app::commands::converter_pick_source_file,
+            app::commands::converter_run,
             app::commands::app_player_play_libvlc,
             app::commands::app_player_stop_libvlc,
             app::commands::app_prepare_media_for_playback,

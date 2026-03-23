@@ -54,6 +54,28 @@ pub fn pick_directory(initial_dir: Option<&Path>) -> AppResult<Option<PathBuf>> 
     ))
 }
 
+pub fn pick_media_file(initial_dir: Option<&Path>) -> AppResult<Option<PathBuf>> {
+    #[cfg(target_os = "windows")]
+    {
+        return pick_media_file_windows(initial_dir);
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        return pick_media_file_macos(initial_dir);
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        return pick_media_file_linux(initial_dir);
+    }
+
+    #[allow(unreachable_code)]
+    Err(AppError::Message(
+        "File picker is not supported on this platform".to_string(),
+    ))
+}
+
 pub fn play_media(target: &Path, custom_ffmpeg_path: Option<&str>) -> AppResult<()> {
     if !target.exists() {
         return Err(AppError::Message(format!(
@@ -447,10 +469,41 @@ fn open_in_file_manager_linux(path: &Path) -> AppResult<()> {
     Ok(())
 }
 
+fn decode_picker_stdout(bytes: &[u8]) -> String {
+    let utf8 = String::from_utf8_lossy(bytes).to_string();
+    let mut decoded = if utf8.contains('\u{0}') {
+        decode_utf16le(bytes).unwrap_or(utf8)
+    } else {
+        utf8
+    };
+    decoded = decoded.replace('\u{feff}', "");
+    decoded
+        .replace('\u{0}', "")
+        .lines()
+        .map(str::trim)
+        .find(|line| !line.is_empty())
+        .unwrap_or("")
+        .trim_matches('"')
+        .to_string()
+}
+
+fn decode_utf16le(bytes: &[u8]) -> Option<String> {
+    if bytes.len() < 2 {
+        return None;
+    }
+    let even_len = bytes.len() - (bytes.len() % 2);
+    let mut units = Vec::<u16>::with_capacity(even_len / 2);
+    for chunk in bytes[..even_len].chunks_exact(2) {
+        units.push(u16::from_le_bytes([chunk[0], chunk[1]]));
+    }
+    String::from_utf16(&units).ok()
+}
+
 #[cfg(target_os = "windows")]
 fn pick_directory_windows(initial_dir: Option<&Path>) -> AppResult<Option<PathBuf>> {
     let script = r#"
 $ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 Add-Type -AssemblyName System.Windows.Forms | Out-Null
 $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
 $dialog.ShowNewFolderButton = $true
@@ -489,7 +542,7 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
         }));
     }
 
-    let selected = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let selected = decode_picker_stdout(&output.stdout);
     if selected.is_empty() {
         Ok(None)
     } else {
@@ -556,6 +609,122 @@ fn pick_directory_linux(initial_dir: Option<&Path>) -> AppResult<Option<PathBuf>
         }
         _ => Err(AppError::Message(
             "No supported folder picker found (expected zenity)".to_string(),
+        )),
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn pick_media_file_windows(initial_dir: Option<&Path>) -> AppResult<Option<PathBuf>> {
+    let script = r#"
+$ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+Add-Type -AssemblyName System.Windows.Forms | Out-Null
+$dialog = New-Object System.Windows.Forms.OpenFileDialog
+$dialog.Filter = 'Media Files|*.mp4;*.mkv;*.webm;*.mov;*.avi;*.m4v;*.flv;*.ts;*.mpg;*.mpeg;*.ogv;*.wmv;*.3gp;*.mp3;*.m4a;*.aac;*.wav;*.flac;*.ogg;*.opus;*.wma;*.ac3;*.mp2;*.alac;*.mka;*.aiff;*.aif;*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif;*.tiff;*.tif;*.tga;*.ico;*.jp2;*.avif|All Files|*.*'
+$dialog.Multiselect = $false
+$dialog.CheckFileExists = $true
+$dialog.Title = 'Select media file'
+if ($env:PULLDOWN_INITIAL_DIR -and (Test-Path $env:PULLDOWN_INITIAL_DIR)) {
+  $dialog.InitialDirectory = $env:PULLDOWN_INITIAL_DIR
+}
+$result = $dialog.ShowDialog()
+if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+  Write-Output $dialog.FileName
+}
+"#;
+
+    let mut command = Command::new("powershell");
+    command.for_background_job();
+    command.args(["-NoProfile", "-STA", "-Command", script]);
+    if let Some(initial) = initial_dir {
+        if !initial.as_os_str().is_empty() {
+            command.env(
+                "PULLDOWN_INITIAL_DIR",
+                initial.to_string_lossy().to_string(),
+            );
+        }
+    }
+
+    let output = command
+        .output()
+        .map_err(|err| AppError::Process(err.to_string()))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        return Err(AppError::Process(if stderr.is_empty() {
+            "Failed to open media picker".to_string()
+        } else {
+            stderr
+        }));
+    }
+
+    let selected = decode_picker_stdout(&output.stdout);
+    if selected.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(PathBuf::from(selected)))
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn pick_media_file_macos(initial_dir: Option<&Path>) -> AppResult<Option<PathBuf>> {
+    let mut script = String::from("set pickedFile to POSIX path of (choose file");
+    if let Some(initial) = initial_dir {
+        if !initial.as_os_str().is_empty() {
+            script.push_str(&format!(
+                " default location POSIX file \"{}\"",
+                initial.display()
+            ));
+        }
+    }
+    script.push_str(")\nreturn pickedFile");
+
+    let output = Command::new("osascript")
+        .for_background_job()
+        .arg("-e")
+        .arg(script)
+        .output()
+        .map_err(|err| AppError::Process(err.to_string()))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_lowercase();
+        if stderr.contains("user canceled") {
+            return Ok(None);
+        }
+        return Err(AppError::Process(
+            String::from_utf8_lossy(&output.stderr).trim().to_string(),
+        ));
+    }
+
+    let selected = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if selected.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(PathBuf::from(selected)))
+    }
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+fn pick_media_file_linux(initial_dir: Option<&Path>) -> AppResult<Option<PathBuf>> {
+    let mut zenity = Command::new("zenity");
+    zenity.for_background_job();
+    zenity.args(["--file-selection", "--title=Select media file"]);
+    if let Some(initial) = initial_dir {
+        zenity.arg("--filename").arg(initial);
+    }
+    let output = zenity.output();
+
+    match output {
+        Ok(out) if out.status.success() => {
+            let selected = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            if selected.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(PathBuf::from(selected)))
+            }
+        }
+        _ => Err(AppError::Message(
+            "No supported file picker found (expected zenity)".to_string(),
         )),
     }
 }

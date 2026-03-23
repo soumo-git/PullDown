@@ -11,6 +11,7 @@ import { renderQueueItem, updateCardDOM } from './components/downloadCard.js';
 import { actions, state, stateEmitter } from './state.js';
 import { invokeCommand, isTauriEnvironment, listenEvent } from './tauriApi.js';
 import { initPlayerView } from './app/player/index.js';
+import { initConverterView } from './app/converter/index.js';
 import { applyEngineStatus, applySettings, handleEngineInstallProgress, initSettingsPanel } from './app/settings/index.js';
 
 const DOWNLOADS_TAB = {
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTopbar();
   initQueueTabs();
   initDownloadedScanControls();
+  initConverterView();
   initPlayerView();
   initQueueDomSync();
   startProgressSimulation();

@@ -128,6 +128,7 @@
 .nav-list .nav-item:nth-child(2) .nav-btn { animation-delay: 0.1s; }
 .nav-list .nav-item:nth-child(3) .nav-btn { animation-delay: 0.15s; }
 .nav-list .nav-item:nth-child(4) .nav-btn { animation-delay: 0.2s; }
+.nav-list .nav-item:nth-child(5) .nav-btn { animation-delay: 0.25s; }
 
 .nav-btn:hover {
   background: var(--color-bg-hover);
