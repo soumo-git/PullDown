@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "PULLDOWN",
   "version": "0.1.0",
-  "identifier": "com.pulldown.app",
+  "identifier": "com.pulldown.desktop",
   "build": {
     "frontendDist": "../src"
   },
