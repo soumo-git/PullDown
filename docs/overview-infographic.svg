@@ -1,0 +1,363 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1560" viewBox="0 0 1400 1560" role="img" aria-labelledby="t d">
+  <title id="t">Pulldown — Features, Formats, Tech Stack, Getting Started</title>
+  <desc id="d">Full reference infographic for the Pulldown open-source video downloader and converter.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0A0E17"/>
+      <stop offset="50%" stop-color="#0D1120"/>
+      <stop offset="100%" stop-color="#101520"/>
+    </linearGradient>
+    <!-- Accent gradients -->
+    <linearGradient id="accentBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+    <linearGradient id="accentOrange" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#EA580C"/>
+      <stop offset="100%" stop-color="#FB923C"/>
+    </linearGradient>
+    <linearGradient id="accentGreen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+    <linearGradient id="accentPurple" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="accentAmber" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#FCD34D"/>
+    </linearGradient>
+    <!-- Card fills -->
+    <linearGradient id="cBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0C1A35"/>
+      <stop offset="100%" stop-color="#070E1C"/>
+    </linearGradient>
+    <linearGradient id="cOrange" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1E0F05"/>
+      <stop offset="100%" stop-color="#120900"/>
+    </linearGradient>
+    <linearGradient id="cGreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#062018"/>
+      <stop offset="100%" stop-color="#031008"/>
+    </linearGradient>
+    <linearGradient id="cPurple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#130A28"/>
+      <stop offset="100%" stop-color="#0A0618"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowSoft">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- ── Background ── -->
+  <rect width="1400" height="1560" fill="url(#bg)" rx="0"/>
+  <!-- Scanline texture -->
+  <pattern id="scan" x="0" y="0" width="1400" height="3" patternUnits="userSpaceOnUse">
+    <rect width="1400" height="1" fill="#fff" opacity="0.012"/>
+  </pattern>
+  <rect width="1400" height="1560" fill="url(#scan)"/>
+  <!-- Corner accent lines -->
+  <line x1="0" y1="0" x2="120" y2="0" stroke="#38BDF8" stroke-width="3"/>
+  <line x1="0" y1="0" x2="0" y2="120" stroke="#38BDF8" stroke-width="3"/>
+  <line x1="1400" y1="0" x2="1280" y2="0" stroke="#38BDF8" stroke-width="3"/>
+  <line x1="1400" y1="0" x2="1400" y2="120" stroke="#38BDF8" stroke-width="3"/>
+  <line x1="0" y1="1560" x2="120" y2="1560" stroke="#38BDF8" stroke-width="3"/>
+  <line x1="0" y1="1560" x2="0" y2="1440" stroke="#38BDF8" stroke-width="3"/>
+  <line x1="1400" y1="1560" x2="1280" y2="1560" stroke="#38BDF8" stroke-width="3"/>
+  <line x1="1400" y1="1560" x2="1400" y2="1440" stroke="#38BDF8" stroke-width="3"/>
+
+  <!-- ══════════════════════════════════════
+       HERO HEADER
+  ══════════════════════════════════════ -->
+  <text x="700" y="80" text-anchor="middle" fill="#F1F5F9" font-size="58" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="6" filter="url(#glowSoft)">PULLDOWN</text>
+  <text x="700" y="116" text-anchor="middle" fill="#64748B" font-size="17" font-family="Segoe UI, Arial" letter-spacing="2">FREE · OPEN SOURCE · VIDEO DOWNLOADER &amp; CONVERTER</text>
+
+  <!-- Tagline pills -->
+  <rect x="310" y="132" width="180" height="30" rx="15" fill="#0C1A35" stroke="#38BDF8" stroke-width="1"/>
+  <text x="400" y="152" text-anchor="middle" fill="#7DD3FC" font-size="12" font-family="Segoe UI, Arial" font-weight="600">No subscriptions</text>
+  <rect x="506" y="132" width="160" height="30" rx="15" fill="#0C1A35" stroke="#38BDF8" stroke-width="1"/>
+  <text x="586" y="152" text-anchor="middle" fill="#7DD3FC" font-size="12" font-family="Segoe UI, Arial" font-weight="600">No watermarks</text>
+  <rect x="682" y="132" width="140" height="30" rx="15" fill="#0C1A35" stroke="#38BDF8" stroke-width="1"/>
+  <text x="752" y="152" text-anchor="middle" fill="#7DD3FC" font-size="12" font-family="Segoe UI, Arial" font-weight="600">No tracking</text>
+  <rect x="838" y="132" width="250" height="30" rx="15" fill="#0C1A35" stroke="#38BDF8" stroke-width="1"/>
+  <text x="963" y="152" text-anchor="middle" fill="#7DD3FC" font-size="12" font-family="Segoe UI, Arial" font-weight="600">Full format &amp; quality control</text>
+
+  <!-- Divider -->
+  <rect x="60" y="176" width="1280" height="1.5" rx="1" fill="url(#accentBlue)" opacity="0.4"/>
+
+  <!-- ══════════════════════════════════════
+       SECTION: FEATURES
+  ══════════════════════════════════════ -->
+  <!-- Section label -->
+  <rect x="60" y="196" width="4" height="28" rx="2" fill="url(#accentBlue)"/>
+  <text x="76" y="216" fill="#E2E8F0" font-size="20" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="2">FEATURES</text>
+
+  <!-- ── Feature Card 1: Downloader ── -->
+  <rect x="60" y="236" width="620" height="290" rx="16" fill="url(#cBlue)" stroke="#2563EB" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="60" y="236" width="620" height="5" rx="2.5" fill="url(#accentBlue)"/>
+  <!-- icon + title -->
+  <circle cx="108" cy="286" r="28" fill="#071228" stroke="#38BDF8" stroke-width="1.5" filter="url(#glow)"/>
+  <text x="108" y="295" text-anchor="middle" fill="#38BDF8" font-size="26" font-family="Segoe UI, Arial">⇓</text>
+  <text x="152" y="278" fill="#BAE6FD" font-size="19" font-family="Segoe UI, Arial" font-weight="700">Downloader</text>
+  <text x="152" y="298" fill="#475569" font-size="12" font-family="Segoe UI, Arial">yt-dlp powered · 1000+ sites</text>
+  <rect x="80" y="314" width="580" height="1" fill="#1E3A5F"/>
+  <!-- Feature rows -->
+  <circle cx="96" cy="342" r="5" fill="#38BDF8"/>
+  <text x="112" y="347" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Highest quality downloads:</tspan>  4K VP9, AV1, H.264, HEVC</text>
+  <text x="112" y="365" fill="#64748B" font-size="12" font-family="Segoe UI, Arial">Video + audio muxed via ffmpeg</text>
+
+  <circle cx="96" cy="390" r="5" fill="#38BDF8"/>
+  <text x="112" y="395" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Format picker:</tspan>  resolution, codec, audio bitrate per download</text>
+
+  <circle cx="96" cy="420" r="5" fill="#38BDF8"/>
+  <text x="112" y="425" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Download queue:</tspan>  parallel downloads · pause / resume / cancel</text>
+
+  <circle cx="96" cy="450" r="5" fill="#38BDF8"/>
+  <text x="112" y="455" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">In-app browser:</tspan>  browse platforms, hit "Download This"</text>
+
+  <!-- Codec chips -->
+  <rect x="80" y="476" width="580" height="1" fill="#1E3A5F"/>
+  <rect x="80" y="492" width="54" height="22" rx="11" fill="#071228" stroke="#38BDF8" stroke-width="1"/>
+  <text x="107" y="507" text-anchor="middle" fill="#7DD3FC" font-size="10" font-family="Segoe UI, Arial" font-weight="600">VP9</text>
+  <rect x="142" y="492" width="44" height="22" rx="11" fill="#071228" stroke="#38BDF8" stroke-width="1"/>
+  <text x="164" y="507" text-anchor="middle" fill="#7DD3FC" font-size="10" font-family="Segoe UI, Arial" font-weight="600">AV1</text>
+  <rect x="194" y="492" width="60" height="22" rx="11" fill="#071228" stroke="#38BDF8" stroke-width="1"/>
+  <text x="224" y="507" text-anchor="middle" fill="#7DD3FC" font-size="10" font-family="Segoe UI, Arial" font-weight="600">H.264</text>
+  <rect x="262" y="492" width="60" height="22" rx="11" fill="#071228" stroke="#38BDF8" stroke-width="1"/>
+  <text x="292" y="507" text-anchor="middle" fill="#7DD3FC" font-size="10" font-family="Segoe UI, Arial" font-weight="600">HEVC</text>
+  <rect x="330" y="492" width="44" height="22" rx="11" fill="#071228" stroke="#38BDF8" stroke-width="1"/>
+  <text x="352" y="507" text-anchor="middle" fill="#7DD3FC" font-size="10" font-family="Segoe UI, Arial" font-weight="600">4K</text>
+  <rect x="382" y="492" width="100" height="22" rx="11" fill="#071228" stroke="#38BDF8" stroke-width="1"/>
+  <text x="432" y="507" text-anchor="middle" fill="#7DD3FC" font-size="10" font-family="Segoe UI, Arial" font-weight="600">1000+ sites</text>
+
+  <!-- ── Feature Card 2: Converter ── -->
+  <rect x="720" y="236" width="620" height="290" rx="16" fill="url(#cOrange)" stroke="#EA580C" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="720" y="236" width="620" height="5" rx="2.5" fill="url(#accentOrange)"/>
+  <circle cx="768" cy="286" r="28" fill="#120800" stroke="#FB923C" stroke-width="1.5" filter="url(#glow)"/>
+  <text x="768" y="295" text-anchor="middle" fill="#FB923C" font-size="26" font-family="Segoe UI, Arial">⇆</text>
+  <text x="812" y="278" fill="#FED7AA" font-size="19" font-family="Segoe UI, Arial" font-weight="700">Converter</text>
+  <text x="812" y="298" fill="#475569" font-size="12" font-family="Segoe UI, Arial">ffmpeg powered · 100% local</text>
+  <rect x="740" y="314" width="580" height="1" fill="#3A1E0A"/>
+
+  <circle cx="756" cy="342" r="5" fill="#FB923C"/>
+  <text x="772" y="347" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Any format ⇆ any format:</tspan>  mp4, mkv, mov, webm, mp3, flac, opus, gif…</text>
+
+  <circle cx="756" cy="390" r="5" fill="#FB923C"/>
+  <text x="772" y="395" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Quality presets:</tspan>  High · Balanced · Small File · fully custom</text>
+
+  <circle cx="756" cy="420" r="5" fill="#FB923C"/>
+  <text x="772" y="425" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Advanced mode:</tspan>  live ffmpeg command preview</text>
+  <text x="772" y="443" fill="#64748B" font-size="12" font-family="Segoe UI, Arial">See exactly what runs before it runs</text>
+
+  <circle cx="756" cy="462" r="5" fill="#FB923C"/>
+  <text x="772" y="467" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">100% local:</tspan>  files never leave your machine</text>
+
+  <!-- Format chips -->
+  <rect x="740" y="478" width="580" height="1" fill="#3A1E0A"/>
+  <rect x="740" y="492" width="44" height="22" rx="11" fill="#120800" stroke="#FB923C" stroke-width="1"/>
+  <text x="762" y="507" text-anchor="middle" fill="#FDBA74" font-size="10" font-family="Segoe UI, Arial" font-weight="600">mp4</text>
+  <rect x="792" y="492" width="44" height="22" rx="11" fill="#120800" stroke="#FB923C" stroke-width="1"/>
+  <text x="814" y="507" text-anchor="middle" fill="#FDBA74" font-size="10" font-family="Segoe UI, Arial" font-weight="600">mkv</text>
+  <rect x="844" y="492" width="44" height="22" rx="11" fill="#120800" stroke="#FB923C" stroke-width="1"/>
+  <text x="866" y="507" text-anchor="middle" fill="#FDBA74" font-size="10" font-family="Segoe UI, Arial" font-weight="600">mov</text>
+  <rect x="896" y="492" width="54" height="22" rx="11" fill="#120800" stroke="#FB923C" stroke-width="1"/>
+  <text x="923" y="507" text-anchor="middle" fill="#FDBA74" font-size="10" font-family="Segoe UI, Arial" font-weight="600">webm</text>
+  <rect x="958" y="492" width="44" height="22" rx="11" fill="#120800" stroke="#FB923C" stroke-width="1"/>
+  <text x="980" y="507" text-anchor="middle" fill="#FDBA74" font-size="10" font-family="Segoe UI, Arial" font-weight="600">mp3</text>
+  <rect x="1010" y="492" width="44" height="22" rx="11" fill="#120800" stroke="#FB923C" stroke-width="1"/>
+  <text x="1032" y="507" text-anchor="middle" fill="#FDBA74" font-size="10" font-family="Segoe UI, Arial" font-weight="600">flac</text>
+  <rect x="1062" y="492" width="50" height="22" rx="11" fill="#120800" stroke="#FB923C" stroke-width="1"/>
+  <text x="1087" y="507" text-anchor="middle" fill="#FDBA74" font-size="10" font-family="Segoe UI, Arial" font-weight="600">opus</text>
+  <rect x="1120" y="492" width="44" height="22" rx="11" fill="#120800" stroke="#FB923C" stroke-width="1"/>
+  <text x="1142" y="507" text-anchor="middle" fill="#FDBA74" font-size="10" font-family="Segoe UI, Arial" font-weight="600">gif</text>
+
+  <!-- ── Feature Card 3: General (full width) ── -->
+  <rect x="60" y="546" width="1280" height="190" rx="16" fill="url(#cGreen)" stroke="#059669" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="60" y="546" width="1280" height="5" rx="2.5" fill="url(#accentGreen)"/>
+  <circle cx="108" cy="592" r="28" fill="#031008" stroke="#34D399" stroke-width="1.5" filter="url(#glow)"/>
+  <text x="108" y="601" text-anchor="middle" fill="#34D399" font-size="22" font-family="Segoe UI, Arial">⚙</text>
+  <text x="152" y="584" fill="#D1FAE5" font-size="19" font-family="Segoe UI, Arial" font-weight="700">General</text>
+  <text x="152" y="604" fill="#475569" font-size="12" font-family="Segoe UI, Arial">Cross-platform · Windows · macOS · Linux</text>
+  <rect x="80" y="620" width="1240" height="1" fill="#0A3020"/>
+
+  <!-- 4 general features in 2 columns -->
+  <circle cx="96" cy="648" r="5" fill="#34D399"/>
+  <text x="112" y="653" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Replaceable engines:</tspan>  yt-dlp and ffmpeg are swappable sidecars</text>
+  <text x="112" y="671" fill="#64748B" font-size="12" font-family="Segoe UI, Arial">Update independently from the app</text>
+
+  <circle cx="96" cy="694" r="5" fill="#34D399"/>
+  <text x="112" y="699" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Engine update notifications:</tspan>  you decide when to update</text>
+  <text x="112" y="717" fill="#64748B" font-size="12" font-family="Segoe UI, Arial">No silent background replacements</text>
+
+  <circle cx="720" cy="648" r="5" fill="#34D399"/>
+  <text x="736" y="653" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Library view:</tspan>  browse and play downloaded and converted files</text>
+
+  <circle cx="720" cy="686" r="5" fill="#34D399"/>
+  <text x="736" y="691" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Cross-platform:</tspan>  Windows · macOS · Linux</text>
+
+  <!-- Divider -->
+  <rect x="60" y="756" width="1280" height="1.5" rx="1" fill="#1E293B"/>
+
+  <!-- ══════════════════════════════════════
+       SECTION: SUPPORTED FORMATS
+  ══════════════════════════════════════ -->
+  <rect x="60" y="776" width="4" height="28" rx="2" fill="url(#accentOrange)"/>
+  <text x="76" y="796" fill="#E2E8F0" font-size="20" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="2">SUPPORTED FORMATS</text>
+
+  <!-- 5 format pills in a row -->
+  <!-- Video containers -->
+  <rect x="60" y="816" width="240" height="100" rx="14" fill="#0C1A35" stroke="#2563EB" stroke-width="1.5"/>
+  <rect x="60" y="816" width="240" height="4" rx="2" fill="url(#accentBlue)"/>
+  <text x="180" y="853" text-anchor="middle" fill="#64748B" font-size="11" font-family="Segoe UI, Arial" letter-spacing="1">VIDEO CONTAINERS</text>
+  <text x="180" y="879" text-anchor="middle" fill="#BAE6FD" font-size="14" font-family="Segoe UI, Arial" font-weight="700">All video containers</text>
+
+  <!-- Video codecs -->
+  <rect x="320" y="816" width="240" height="100" rx="14" fill="#1E0F05" stroke="#EA580C" stroke-width="1.5"/>
+  <rect x="320" y="816" width="240" height="4" rx="2" fill="url(#accentOrange)"/>
+  <text x="440" y="853" text-anchor="middle" fill="#64748B" font-size="11" font-family="Segoe UI, Arial" letter-spacing="1">VIDEO CODECS</text>
+  <text x="440" y="879" text-anchor="middle" fill="#FED7AA" font-size="14" font-family="Segoe UI, Arial" font-weight="700">All video codecs</text>
+
+  <!-- Audio -->
+  <rect x="580" y="816" width="240" height="100" rx="14" fill="#062018" stroke="#059669" stroke-width="1.5"/>
+  <rect x="580" y="816" width="240" height="4" rx="2" fill="url(#accentGreen)"/>
+  <text x="700" y="853" text-anchor="middle" fill="#64748B" font-size="11" font-family="Segoe UI, Arial" letter-spacing="1">AUDIO</text>
+  <text x="700" y="879" text-anchor="middle" fill="#D1FAE5" font-size="14" font-family="Segoe UI, Arial" font-weight="700">All audio formats</text>
+
+  <!-- Image sequences -->
+  <rect x="840" y="816" width="240" height="100" rx="14" fill="#130A28" stroke="#7C3AED" stroke-width="1.5"/>
+  <rect x="840" y="816" width="240" height="4" rx="2" fill="url(#accentPurple)"/>
+  <text x="960" y="853" text-anchor="middle" fill="#64748B" font-size="11" font-family="Segoe UI, Arial" letter-spacing="1">IMAGE SEQUENCES</text>
+  <text x="960" y="879" text-anchor="middle" fill="#EDE9FE" font-size="14" font-family="Segoe UI, Arial" font-weight="700">All image sequences</text>
+
+  <!-- Subtitles -->
+  <rect x="1100" y="816" width="240" height="100" rx="14" fill="#2A1700" stroke="#D97706" stroke-width="1.5"/>
+  <rect x="1100" y="816" width="240" height="4" rx="2" fill="url(#accentAmber)"/>
+  <text x="1220" y="853" text-anchor="middle" fill="#64748B" font-size="11" font-family="Segoe UI, Arial" letter-spacing="1">SUBTITLES</text>
+  <text x="1220" y="879" text-anchor="middle" fill="#FEF3C7" font-size="14" font-family="Segoe UI, Arial" font-weight="700">All subtitle formats</text>
+
+  <!-- ffmpeg note -->
+  <rect x="60" y="930" width="1280" height="40" rx="10" fill="#0B1220" stroke="#334155" stroke-width="1"/>
+  <text x="700" y="955" text-anchor="middle" fill="#64748B" font-size="14" font-family="Segoe UI, Arial" font-style="italic">If ffmpeg supports it, <tspan fill="#34D399" font-weight="600" font-style="normal">Pulldown can convert it.</tspan></text>
+
+  <!-- Divider -->
+  <rect x="60" y="986" width="1280" height="1.5" rx="1" fill="#1E293B"/>
+
+  <!-- ══════════════════════════════════════
+       SECTION: TECH STACK  (left) + ENGINE UPDATES (right)
+  ══════════════════════════════════════ -->
+  <rect x="60" y="1006" width="4" height="28" rx="2" fill="url(#accentPurple)"/>
+  <text x="76" y="1026" fill="#E2E8F0" font-size="20" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="2">TECH STACK</text>
+
+  <!-- Stack table card -->
+  <rect x="60" y="1046" width="620" height="260" rx="16" fill="url(#cPurple)" stroke="#7C3AED" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="60" y="1046" width="620" height="5" rx="2.5" fill="url(#accentPurple)"/>
+
+  <!-- Table header -->
+  <rect x="80" y="1066" width="580" height="34" rx="8" fill="#0A0618"/>
+  <text x="160" y="1088" text-anchor="middle" fill="#6D28D9" font-size="12" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="1">LAYER</text>
+  <text x="450" y="1088" text-anchor="middle" fill="#6D28D9" font-size="12" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="1">TECHNOLOGY</text>
+
+  <!-- Row 1 -->
+  <rect x="80" y="1108" width="580" height="46" rx="0" fill="#100820" opacity="0.6"/>
+  <text x="160" y="1136" text-anchor="middle" fill="#94A3B8" font-size="13" font-family="Segoe UI, Arial">Shell</text>
+  <rect x="340" y="1118" width="130" height="24" rx="12" fill="#1A0E35" stroke="#A78BFA" stroke-width="1"/>
+  <text x="405" y="1134" text-anchor="middle" fill="#C4B5FD" font-size="12" font-family="Segoe UI, Arial" font-weight="600">Tauri (Rust)</text>
+
+  <!-- Row 2 -->
+  <rect x="80" y="1158" width="580" height="46" rx="0" fill="#0A0618" opacity="0.4"/>
+  <text x="160" y="1186" text-anchor="middle" fill="#94A3B8" font-size="13" font-family="Segoe UI, Arial">Frontend</text>
+  <rect x="340" y="1168" width="200" height="24" rx="12" fill="#1A0E35" stroke="#A78BFA" stroke-width="1"/>
+  <text x="440" y="1184" text-anchor="middle" fill="#C4B5FD" font-size="12" font-family="Segoe UI, Arial" font-weight="600">Vanilla HTML + CSS + JS</text>
+
+  <!-- Row 3 -->
+  <rect x="80" y="1208" width="580" height="46" rx="0" fill="#100820" opacity="0.6"/>
+  <text x="160" y="1236" text-anchor="middle" fill="#94A3B8" font-size="13" font-family="Segoe UI, Arial">Engines</text>
+  <rect x="340" y="1218" width="260" height="24" rx="12" fill="#1A0E35" stroke="#A78BFA" stroke-width="1"/>
+  <text x="470" y="1234" text-anchor="middle" fill="#C4B5FD" font-size="12" font-family="Segoe UI, Arial" font-weight="600">yt-dlp + ffmpeg (sidecars)</text>
+
+  <!-- Row 4 -->
+  <rect x="80" y="1258" width="580" height="46" rx="0" fill="#0A0618" opacity="0.4"/>
+  <text x="160" y="1286" text-anchor="middle" fill="#94A3B8" font-size="13" font-family="Segoe UI, Arial">IPC</text>
+  <rect x="340" y="1268" width="250" height="24" rx="12" fill="#1A0E35" stroke="#A78BFA" stroke-width="1"/>
+  <text x="465" y="1284" text-anchor="middle" fill="#C4B5FD" font-size="12" font-family="Segoe UI, Arial" font-weight="600">Tauri commands + events</text>
+
+  <!-- ── ENGINE UPDATES (right) ── -->
+  <rect x="720" y="1006" width="4" height="28" rx="2" fill="url(#accentAmber)"/>
+  <text x="736" y="1026" fill="#E2E8F0" font-size="20" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="2">ENGINE UPDATES</text>
+
+  <rect x="720" y="1046" width="620" height="260" rx="16" fill="#2A1700" stroke="#D97706" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="720" y="1046" width="620" height="5" rx="2.5" fill="url(#accentAmber)"/>
+
+  <circle cx="768" cy="1098" r="28" fill="#1C1000" stroke="#F59E0B" stroke-width="1.5" filter="url(#glow)"/>
+  <text x="768" y="1107" text-anchor="middle" fill="#F59E0B" font-size="22" font-family="Segoe UI, Arial">🔔</text>
+  <text x="812" y="1090" fill="#FDE68A" font-size="17" font-family="Segoe UI, Arial" font-weight="700">Pinned + Swappable Engines</text>
+  <text x="812" y="1110" fill="#475569" font-size="12" font-family="Segoe UI, Arial">yt-dlp · ffmpeg</text>
+  <rect x="740" y="1128" width="580" height="1" fill="#3D2100"/>
+
+  <circle cx="756" cy="1158" r="5" fill="#F59E0B"/>
+  <text x="772" y="1163" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial">Ships with pinned versions of yt-dlp and ffmpeg</text>
+
+  <circle cx="756" cy="1193" r="5" fill="#F59E0B"/>
+  <text x="772" y="1198" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial">App notifies when a new version is detected</text>
+
+  <circle cx="756" cy="1228" r="5" fill="#F59E0B"/>
+  <text x="772" y="1233" fill="#CBD5E1" font-size="13" font-family="Segoe UI, Arial">You choose when to update — no silent replacements</text>
+
+  <!-- Manual update path -->
+  <rect x="740" y="1256" width="580" height="38" rx="10" fill="#1C1000" stroke="#D97706" stroke-width="1"/>
+  <text x="750" y="1272" fill="#64748B" font-size="12" font-family="Segoe UI, Arial">Manual update:</text>
+  <text x="860" y="1272" fill="#FCD34D" font-size="12" font-family="Consolas, monospace">Settings → Engine Management → Check for Updates</text>
+
+  <!-- Divider -->
+  <rect x="60" y="1320" width="1280" height="1.5" rx="1" fill="#1E293B"/>
+
+  <!-- ══════════════════════════════════════
+       SECTION: GETTING STARTED
+  ══════════════════════════════════════ -->
+  <rect x="60" y="1340" width="4" height="28" rx="2" fill="url(#accentGreen)"/>
+  <text x="76" y="1360" fill="#E2E8F0" font-size="20" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="2">GETTING STARTED</text>
+
+  <!-- Prerequisites -->
+  <rect x="60" y="1380" width="400" height="130" rx="14" fill="#062018" stroke="#059669" stroke-width="1.5"/>
+  <rect x="60" y="1380" width="400" height="4" rx="2" fill="url(#accentGreen)"/>
+  <text x="80" y="1404" fill="#86EFAC" font-size="13" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="1">PREREQUISITES</text>
+  <circle cx="80" cy="1428" r="4" fill="#34D399"/>
+  <text x="94" y="1433" fill="#CBD5E1" font-size="12" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Rust</tspan>  (stable) — rustup.rs</text>
+  <circle cx="80" cy="1458" r="4" fill="#34D399"/>
+  <text x="94" y="1463" fill="#CBD5E1" font-size="12" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Node.js</tspan>  18+</text>
+  <circle cx="80" cy="1488" r="4" fill="#34D399"/>
+  <text x="94" y="1493" fill="#CBD5E1" font-size="12" font-family="Segoe UI, Arial"><tspan font-weight="600" fill="#E2E8F0">Tauri CLI</tspan>  — tauri.app</text>
+
+  <!-- Install & Run + Build commands -->
+  <rect x="480" y="1380" width="860" height="130" rx="14" fill="#0A0E17" stroke="#334155" stroke-width="1.5"/>
+  <rect x="480" y="1380" width="860" height="4" rx="2" fill="#334155"/>
+
+  <!-- Install col -->
+  <text x="500" y="1404" fill="#86EFAC" font-size="13" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="1">INSTALL &amp; RUN</text>
+  <rect x="500" y="1412" width="380" height="26" rx="6" fill="#060A10"/>
+  <text x="516" y="1429" fill="#34D399" font-size="12" font-family="Consolas, monospace">git clone https://github.com/…/pulldown.git</text>
+  <rect x="500" y="1446" width="240" height="26" rx="6" fill="#060A10"/>
+  <text x="516" y="1463" fill="#34D399" font-size="12" font-family="Consolas, monospace">npm install &amp;&amp; npm run tauri dev</text>
+
+  <!-- Build col -->
+  <text x="920" y="1404" fill="#FCD34D" font-size="13" font-family="Segoe UI, Arial" font-weight="700" letter-spacing="1">BUILD</text>
+  <rect x="920" y="1412" width="260" height="26" rx="6" fill="#060A10"/>
+  <text x="936" y="1429" fill="#FCD34D" font-size="12" font-family="Consolas, monospace">npm run tauri build</text>
+  <text x="920" y="1470" fill="#475569" font-size="11" font-family="Segoe UI, Arial">→ src-tauri/target/release/bundle/</text>
+  <text x="920" y="1488" fill="#475569" font-size="11" font-family="Segoe UI, Arial">Platform-native installers</text>
+
+  <!-- ══════════════════════════════════════
+       LEGAL FOOTER
+  ══════════════════════════════════════ -->
+  <rect x="60" y="1524" width="1280" height="22" rx="6" fill="#0A0E17" stroke="#1E293B" stroke-width="1"/>
+  <text x="700" y="1539" text-anchor="middle" fill="#374151" font-size="11" font-family="Segoe UI, Arial">Pulldown is a GUI tool. It does not host, distribute, or cache any copyrighted content. You are solely responsible for how you use this tool. Not affiliated with YouTube, Google, or any media platform.</text>
+</svg>
